@@ -1,6 +1,6 @@
 import { client } from "../../sanity/lib/client";
 import Image from "next/image";
-import { urlFor } from "../../sanity/lib/image"; // adjust if needed
+// import { urlFor } from "../../sanity/lib/image"; // adjust if needed
 
 const query = `*[_type == "industry"]|order(startYear desc){
   _id,
