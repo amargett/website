@@ -12,7 +12,19 @@ const featuredProjectsQuery = `*[_type == "featuredProject"]|order(order asc){
 }`;
 
 export default async function Home() {
-  const featuredProjects = await client.fetch(featuredProjectsQuery);
+  let featuredProjects = [];
+
+  try {
+    featuredProjects = await client.fetch(featuredProjectsQuery);
+  } catch (err) {
+    console.error("Sanity fetch failed:", err);
+    return (
+      <main className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold">Error loading content</h1>
+        <p className="text-red-500">Check Sanity environment variables or client config.</p>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-16 flex flex-col items-center">
