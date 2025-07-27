@@ -13,7 +13,7 @@
   --cosmic-dark: #1e293b;
   --gradient-start: #f97316; /* Orange */
   --gradient-mid: #e0f2fe;   /* Light Blue */
-  --gradient-end: #1e40af;   /* Darker Blue */
+  --gradient-end: #0a4a5a;   /* Bluer Teal/Blue-Green */
 }
 
 @theme inline {
@@ -46,7 +46,7 @@
     --cosmic-dark: #1e293b;
     --gradient-start: #ea580c; /* Darker Orange */
     --gradient-mid: #0c4a6e;   /* Darker Mid Blue */
-    --gradient-end: #1e3a8a;   /* Even Darker Blue */
+    --gradient-end: #064a4e;   /* Bluer Dark Teal/Blue-Green */
   }
 }
 
