@@ -1,19 +1,26 @@
 import { client } from "../../sanity/lib/client";
+import { urlFor } from "../../sanity/lib/image";
+import Image from "next/image";
+import Link from "next/link";
 
-const query = `*[_type == "coursework"]|order(year desc){
+export const dynamic = "force-dynamic";
+
+const query = `*[_type == "project" && category == "coursework"]|order(year desc){
   _id,
-  courseCode,
-  courseName,
-  description,
+  title,
+  slug,
+  shortDescription,
+  mainMedia,
   year,
-  institution
+  institution,
+  courseCode
 }`;
 
 export default async function CourseworkPage() {
-  let courses = [];
+  let projects = [];
   
   try {
-    courses = await client.fetch(query);
+    projects = await client.fetch(query);
   } catch (err) {
     console.error("Sanity fetch failed:", err);
     return (
@@ -31,17 +38,54 @@ export default async function CourseworkPage() {
     <main className="max-w-4xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold mb-8 text-center">Coursework</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-        {courses.length === 0 && (
-          <p className="col-span-full text-center text-gray-400">No coursework entries yet.</p>
+        {projects.length === 0 && (
+          <p className="col-span-full text-center text-gray-400">No coursework projects yet.</p>
         )}
-        {courses.map((item: any) => (
-          <div key={item._id} className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
-            <h3 className="text-lg font-bold mb-1">{item.courseName}</h3>
-            <div className="text-sm text-gray-500 mb-1">{item.courseCode}</div>
-            <div className="text-xs text-gray-400 mb-2">{item.year} {item.institution && `| ${item.institution}`}</div>
-            <p className="text-gray-600 text-center">{item.description}</p>
-          </div>
-        ))}
+        {projects.map((project: any) => {
+          const imageUrl = project.mainMedia?.type === 'image' && project.mainMedia.image 
+            ? urlFor(project.mainMedia.image)?.url() 
+            : null;
+          const videoUrl = project.mainMedia?.type === 'video' 
+            ? project.mainMedia.videoUrl 
+            : null;
+          
+          return (
+            <Link 
+              key={project._id} 
+              href={`/projects/${project.slug.current}`}
+              className="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition-shadow"
+            >
+              {imageUrl ? (
+                <Image
+                  src={imageUrl}
+                  alt={project.mainMedia.alt}
+                  width={400}
+                  height={160}
+                  className="w-full h-40 object-cover rounded mb-4"
+                />
+              ) : videoUrl ? (
+                <video
+                  src={videoUrl}
+                  className="w-full h-40 object-cover rounded mb-4"
+                  muted
+                  loop
+                  autoPlay
+                />
+              ) : (
+                <div className="w-full h-40 bg-gray-100 rounded mb-4 flex items-center justify-center">
+                  <span className="text-gray-400">No media</span>
+                </div>
+              )}
+              <h3 className="text-lg font-bold mb-2 text-center">{project.title}</h3>
+              <p className="text-gray-600 mb-2 text-center">{project.shortDescription}</p>
+              <div className="text-sm text-gray-500 text-center">
+                {project.institution && <div>{project.institution}</div>}
+                {project.courseCode && <div>{project.courseCode}</div>}
+                {project.year && <div>{project.year}</div>}
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </main>
   );
