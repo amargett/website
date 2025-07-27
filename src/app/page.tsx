@@ -42,25 +42,30 @@ export default async function Home() {
     // Return a working page even if Sanity fails
     return (
       <div className="full-page-gradient">
-        <main className="max-w-6xl mx-auto px-4 py-8 sm:py-16 flex flex-col items-center">
-          <section className="text-center mb-12 sm:mb-16 animate-fade-in">
-            <div className="space-y-2 max-w-4xl mx-auto">
-              <p className="text-lg sm:text-2xl lg:text-3xl text-[#374151] dark:text-[#e5e7eb]">
+        {/* Top Header */}
+        <header className="bg-[#1e293b] dark:bg-[#0f172a] text-white py-16 sm:py-24 relative z-10">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            <div className="space-y-2 max-w-4xl mx-auto animate-fade-in">
+              <p className="text-lg sm:text-2xl lg:text-3xl text-white">
                 Hello, my name is Ashley.
               </p>
-              <p className="text-lg sm:text-2xl lg:text-3xl text-[#374151] dark:text-[#e5e7eb] leading-relaxed">
+              <p className="text-lg sm:text-2xl lg:text-3xl text-white leading-relaxed">
                 I am a Mechanical Engineering graduate student @ MIT interested in mechanical design, mechatronics, and robotic systems.
               </p>
             </div>
-          </section>
-          <section className="w-full">
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="relative z-20 rounded-t-3xl -mt-8 pt-12 pb-16">
+          <div className="max-w-6xl mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               <div className="text-center text-[#64748b]">
                 <p>Content is currently being loaded...</p>
                 <p className="text-sm mt-2">If this persists, please check the Sanity configuration.</p>
               </div>
             </div>
-          </section>
+          </div>
         </main>
       </div>
     );
@@ -68,18 +73,25 @@ export default async function Home() {
 
   return (
     <div className="full-page-gradient">
-      <main className="max-w-6xl mx-auto px-4 py-8 sm:py-16 flex flex-col items-center">
-        <section className="text-center mb-12 sm:mb-16 animate-fade-in">
-          <div className="space-y-2 max-w-4xl mx-auto">
-            <p className="text-lg sm:text-2xl lg:text-3xl text-[#374151] dark:text-[#e5e7eb]">
-              Hello, my name is Ashley.
-            </p>
-            <p className="text-lg sm:text-2xl lg:text-3xl text-[#374151] dark:text-[#e5e7eb] leading-relaxed">
-              I am a Mechanical Engineering graduate student @ MIT interested in mechanical design, mechatronics, and robotic systems.
+      {/* Top Header */}
+      <header className="bg-[#1e293b] dark:bg-[#0f172a] text-white py-16 sm:py-24 relative z-10">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="space-y-3 max-w-4xl animate-fade-in">
+            <div className="typewriter-greeting">
+              <p className="header-text text-xl sm:text-3xl lg:text-4xl xl:text-5xl text-white">
+                Hello, my name is Ashley.
+              </p>
+            </div>
+            <p className="header-text text-lg sm:text-2xl lg:text-3xl xl:text-4xl text-white leading-relaxed">
+              I am a Mechanical Engineering graduate student @ MIT interested in mechanical design, mechatronics, & robotic systems. See below for some of my featured work!
             </p>
           </div>
-        </section>
-        <section className="w-full">
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="relative z-20 rounded-t-3xl -mt-8 pt-12 pb-16">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {featuredProjects.length === 0 && (
               <div className="col-span-full text-center text-[#64748b]">
@@ -134,7 +146,7 @@ export default async function Home() {
               );
             })}
           </div>
-        </section>
+        </div>
       </main>
     </div>
   );

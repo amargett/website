@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   --background: #fafafa;
@@ -10,9 +11,9 @@
   --cosmic-slate: #475569;
   --cosmic-blue: #3b82f6;
   --cosmic-dark: #1e293b;
-  --gradient-start: #ffffff;
-  --gradient-mid: #e0f2fe;
-  --gradient-end: #0ea5e9;
+  --gradient-start: #f97316; /* Orange */
+  --gradient-mid: #e0f2fe;   /* Light Blue */
+  --gradient-end: #1e40af;   /* Darker Blue */
 }
 
 @theme inline {
@@ -43,9 +44,84 @@
     --cosmic-slate: #475569;
     --cosmic-blue: #3b82f6;
     --cosmic-dark: #1e293b;
-    --gradient-start: #1e293b;
-    --gradient-mid: #0c4a6e;
-    --gradient-end: #0284c7;
+    --gradient-start: #ea580c; /* Darker Orange */
+    --gradient-mid: #0c4a6e;   /* Darker Mid Blue */
+    --gradient-end: #1e3a8a;   /* Even Darker Blue */
+  }
+}
+
+/* Header typography */
+.header-text {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+/* Typewriter effect for header greeting */
+.typewriter-greeting {
+  position: relative;
+  display: inline-block;
+}
+
+.typewriter-greeting p {
+  margin: 0;
+  white-space: nowrap;
+  position: relative;
+}
+
+.typewriter-greeting p::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: 0;
+  width: 100%;
+  height: calc(100% + 4px);
+  background: #1e293b;
+  animation: reveal-text 2s steps(25, end) forwards;
+}
+
+.typewriter-greeting p::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: white;
+  animation: move-cursor 2s steps(25, end) forwards, blink-caret 0.75s step-end 3, hide-cursor 0s forwards;
+  animation-delay: 0s, 2s, 4.25s;
+}
+
+@keyframes reveal-text {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0;
+  }
+}
+
+@keyframes move-cursor {
+  from {
+    left: 0;
+  }
+  to {
+    left: 18ch;
+  }
+}
+
+@keyframes blink-caret {
+  from, to {
+    background: transparent;
+  }
+  50% {
+    background: white;
+  }
+}
+
+@keyframes hide-cursor {
+  to {
+    opacity: 0;
   }
 }
 
@@ -106,11 +182,14 @@ body {
   white-space: nowrap;
 }
 
-/* Full page gradient background - intense in top right */
+/* Full page gradient background - orange top right, blue bottom left */
 .full-page-gradient {
-  background: radial-gradient(ellipse at top right, var(--gradient-end) 0%, var(--gradient-mid) 30%, var(--gradient-start) 70%);
+  background: radial-gradient(ellipse at top right, var(--gradient-start) 0%, var(--gradient-mid) 40%, var(--gradient-end) 100%);
   min-height: 100vh;
   background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 /* Cosmic gradient backgrounds */
