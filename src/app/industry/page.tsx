@@ -13,7 +13,23 @@ const query = `*[_type == "industry"]|order(startYear desc){
 }`;
 
 export default async function IndustryPage() {
-  const industry = await client.fetch(query);
+  let industry = [];
+  
+  try {
+    industry = await client.fetch(query);
+  } catch (err) {
+    console.error("Sanity fetch failed:", err);
+    return (
+      <main className="max-w-4xl mx-auto px-4 py-12">
+        <h1 className="text-3xl font-bold mb-8 text-center">Industry Experience</h1>
+        <div className="text-center text-gray-500">
+          <p>Content is currently being loaded...</p>
+          <p className="text-sm mt-2">If this persists, please check the Sanity configuration.</p>
+        </div>
+      </main>
+    );
+  }
+  
   return (
     <main className="max-w-4xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold mb-8 text-center">Industry Experience</h1>
@@ -48,5 +64,4 @@ export default async function IndustryPage() {
       </div>
     </main>
   );
-  console.log(industry);
 } 

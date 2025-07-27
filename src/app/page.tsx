@@ -20,10 +20,21 @@ export default async function Home() {
     featuredProjects = await client.fetch(featuredProjectsQuery);
   } catch (err) {
     console.error("Sanity fetch failed:", err);
+    // Return a working page even if Sanity fails
     return (
-      <main className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold">Error loading content</h1>
-        <p className="text-red-500">Check Sanity environment variables or client config.</p>
+      <main className="max-w-4xl mx-auto px-4 py-16 flex flex-col items-center">
+        <section className="text-center mb-16">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4">Ashley Margetts</h1>
+          <p className="text-lg sm:text-xl text-gray-600 mb-2">Mechanical Engineering Graduate Student @ MIT</p>
+          <p className="text-base text-gray-500">Robotics | Research | Design | Industry | Coursework | Activities</p>
+        </section>
+        <section className="w-full">
+          <h2 className="text-2xl font-semibold mb-6 text-center">Featured Projects</h2>
+          <div className="text-center text-gray-500">
+            <p>Content is currently being loaded...</p>
+            <p className="text-sm mt-2">If this persists, please check the Sanity configuration.</p>
+          </div>
+        </section>
       </main>
     );
   }
@@ -42,7 +53,7 @@ export default async function Home() {
             <p className="col-span-full text-center text-gray-400">No featured projects yet.</p>
           )}
           {featuredProjects.map((project: any) => {
-            const imageUrl = project.image ? urlFor(project.image).url() : null;
+            const imageUrl = project.image ? urlFor(project.image)?.url() : null;
           
             return (
               <div key={project._id} className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
