@@ -2,72 +2,89 @@ import Image from "next/image";
 
 export default function AboutPage() {
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
-      <div className="text-center mb-8 sm:mb-12">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-[#2d3748] dark:text-white">About Me</h1>
-        <p className="text-base sm:text-lg text-[#4a7c59] dark:text-[#68d391]">Get to know me better</p>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-start">
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-[#2d3748] dark:text-white">Background</h2>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              I'm a Mechanical Engineering Graduate Student at MIT, passionate about robotics, research, and design. 
-              My work spans across multiple domains including industry experience, academic coursework, and research activities.
-            </p>
-          </div>
+    <div className="full-page-gradient">
+      <main className="max-w-4xl mx-auto px-4 py-12">
+        <div className="cosmic-card rounded-xl p-8">
+          <h1 className="text-4xl font-bold mb-8 text-center text-[#374151] dark:text-[#e5e7eb]">
+            About Me
+          </h1>
           
-          <div>
-            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-[#2d3748] dark:text-white">Research Interests</h2>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              My research focuses on robotics and mechanical systems, with particular interest in control systems, 
-              design optimization, and innovative engineering solutions.
-            </p>
-          </div>
-          
-          <div>
-            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-[#2d3748] dark:text-white">Skills & Expertise</h2>
-            <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1 bg-[#4a7c59] dark:bg-[#68d391] text-white dark:text-gray-900 rounded-full text-sm">Robotics</span>
-              <span className="px-3 py-1 bg-[#4a7c59] dark:bg-[#68d391] text-white dark:text-gray-900 rounded-full text-sm">Mechanical Design</span>
-              <span className="px-3 py-1 bg-[#4a7c59] dark:bg-[#68d391] text-white dark:text-gray-900 rounded-full text-sm">Control Systems</span>
-              <span className="px-3 py-1 bg-[#4a7c59] dark:bg-[#68d391] text-white dark:text-gray-900 rounded-full text-sm">Research</span>
-              <span className="px-3 py-1 bg-[#4a7c59] dark:bg-[#68d391] text-white dark:text-gray-900 rounded-full text-sm">CAD</span>
-              <span className="px-3 py-1 bg-[#4a7c59] dark:bg-[#68d391] text-white dark:text-gray-900 rounded-full text-sm">Prototyping</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 text-[#2d3748] dark:text-white">Education</h3>
-            <div className="space-y-3">
-              <div>
-                <p className="font-medium text-[#4a7c59] dark:text-[#68d391]">MIT</p>
-                <p className="text-gray-600 dark:text-gray-300">Mechanical Engineering, Graduate Student</p>
-                <p className="text-sm text-[#d2691e] dark:text-[#e67e22]">Present</p>
+          <div className="space-y-6 text-[#374151] dark:text-[#e5e7eb]">
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-[#475569]">Background</h2>
+              <p className="text-[#64748b] leading-relaxed">
+                I am a Mechanical Engineering graduate student at MIT, passionate about mechanical design, 
+                mechatronics, and robotic systems. My research focuses on developing innovative solutions 
+                that bridge the gap between theoretical engineering and practical applications.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-[#475569]">Research Interests</h2>
+              <ul className="list-disc list-inside space-y-2 text-[#64748b]">
+                <li>Robotic systems and automation</li>
+                <li>Mechatronics and control systems</li>
+                <li>Mechanical design and prototyping</li>
+                <li>Human-robot interaction</li>
+                <li>Sustainable engineering solutions</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-[#475569]">Education</h2>
+              <div className="space-y-3 text-[#64748b]">
+                <div>
+                  <h3 className="font-medium text-[#374151] dark:text-[#e5e7eb]">Massachusetts Institute of Technology</h3>
+                  <p>M.S. in Mechanical Engineering</p>
+                  <p className="text-sm text-[#64748b]">2023 - Present</p>
+                </div>
+                <div>
+                  <h3 className="font-medium text-[#374151] dark:text-[#e5e7eb]">Previous Institution</h3>
+                  <p>B.S. in Mechanical Engineering</p>
+                  <p className="text-sm text-[#64748b]">2019 - 2023</p>
+                </div>
               </div>
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 text-[#2d3748] dark:text-white">Contact</h3>
-            <div className="space-y-2">
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium text-[#4a7c59] dark:text-[#68d391]">Email:</span> 
-                <a href="mailto:your.email@mit.edu" className="text-[#d2691e] dark:text-[#e67e22] hover:underline ml-2">
-                  your.email@mit.edu
-                </a>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-[#475569]">Skills</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[#64748b]">
+                <div>
+                  <h3 className="font-medium text-[#374151] dark:text-[#e5e7eb] mb-2">Technical Skills</h3>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>CAD Design (SolidWorks, Fusion 360)</li>
+                    <li>3D Printing & Rapid Prototyping</li>
+                    <li>Programming (Python, MATLAB, C++)</li>
+                    <li>Control Systems & Robotics</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-medium text-[#374151] dark:text-[#e5e7eb] mb-2">Research Methods</h3>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Experimental Design</li>
+                    <li>Data Analysis & Visualization</li>
+                    <li>Technical Writing</li>
+                    <li>Project Management</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-[#475569]">Contact</h2>
+              <p className="text-[#64748b]">
+                I'm always interested in discussing research opportunities, collaborations, or just 
+                connecting with fellow engineers and researchers. Feel free to reach out!
               </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium text-[#4a7c59] dark:text-[#68d391]">Location:</span> 
-                <span className="ml-2">Cambridge, MA</span>
-              </p>
-            </div>
+              <div className="mt-4 space-y-2 text-[#64748b]">
+                <p><span className="font-medium text-[#374151] dark:text-[#e5e7eb]">Email:</span> [Your Email]</p>
+                <p><span className="font-medium text-[#374151] dark:text-[#e5e7eb]">LinkedIn:</span> [Your LinkedIn]</p>
+                <p><span className="font-medium text-[#374151] dark:text-[#e5e7eb]">GitHub:</span> [Your GitHub]</p>
+              </div>
+            </section>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 } 

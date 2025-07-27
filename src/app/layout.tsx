@@ -38,27 +38,27 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/favicon.svg" />
-        <meta name="theme-color" content="#d2691e" />
+        <meta name="theme-color" content="#475569" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <nav className="w-full flex justify-between items-center border-b border-gray-200 dark:border-gray-700 bg-[#f5f3f0] dark:bg-[#2d3748] py-4 px-6 mb-8 sticky top-0 z-50 shadow-sm">
+        <nav className="w-full flex justify-between items-center border-b border-[#475569]/10 bg-white/80 dark:bg-[#0f172a]/80 py-4 px-6 mb-8 sticky top-0 z-50 backdrop-blur-md cosmic-surface">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-[#d2691e] dark:text-[#e67e22] hover:text-[#b85a1a] dark:hover:text-[#d35400] transition-colors">
+            <Link href="/" className="text-xl font-bold text-[#475569] hover:text-[#3b82f6] transition-colors">
               AM
             </Link>
           </div>
-          <div className="flex gap-4 sm:gap-6">
+          <div className="flex gap-6 sm:gap-8">
             <Link 
               href="/about" 
-              className="px-3 sm:px-4 py-2 bg-[#4a7c59] dark:bg-[#68d391] text-white dark:text-gray-900 rounded-lg hover:bg-[#3d6b4a] dark:hover:bg-[#48bb78] transition-colors text-sm font-medium"
+              className="text-[#374151] dark:text-[#e5e7eb] hover:text-[#3b82f6] transition-colors text-sm font-medium"
             >
               About Me
             </Link>
             <Link 
               href="/featured-projects" 
-              className="px-3 sm:px-4 py-2 bg-[#d2691e] dark:bg-[#e67e22] text-white rounded-lg hover:bg-[#b85a1a] dark:hover:bg-[#d35400] transition-colors text-sm font-medium"
+              className="text-[#374151] dark:text-[#e5e7eb] hover:text-[#3b82f6] transition-colors text-sm font-medium"
             >
               Projects
             </Link>
