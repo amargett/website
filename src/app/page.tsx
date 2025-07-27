@@ -26,10 +26,10 @@ export default async function Home() {
     // Return a working page even if Sanity fails
     return (
       <main className="max-w-6xl mx-auto px-4 py-16 flex flex-col items-center">
-        <section className="text-center mb-16">
-          <h1 className="text-5xl sm:text-6xl font-bold mb-6 text-[#2d3748]">Ashley Margetts</h1>
-          <p className="text-xl sm:text-2xl text-[#4a7c59] mb-3 font-medium">Mechanical Engineering Graduate Student @ MIT</p>
-          <p className="text-lg text-[#d2691e] font-light">Robotics | Research | Design | Industry | Coursework | Activities</p>
+        <section className="text-center mb-16 animate-fade-in">
+          <p className="text-2xl sm:text-3xl text-[#2d3748] leading-relaxed max-w-4xl mx-auto">
+            Hello, my name is Ashley. I am a Mechanical Engineering graduate student @ MIT interested in mechanical design, mechatronics, and robotic systems.
+          </p>
         </section>
         <section className="w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -45,10 +45,10 @@ export default async function Home() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-16 flex flex-col items-center">
-      <section className="text-center mb-16">
-        <h1 className="text-5xl sm:text-6xl font-bold mb-6 text-[#2d3748]">Ashley Margetts</h1>
-        <p className="text-xl sm:text-2xl text-[#4a7c59] mb-3 font-medium">Mechanical Engineering Graduate Student @ MIT</p>
-        <p className="text-lg text-[#d2691e] font-light">Robotics | Research | Design | Industry | Coursework | Activities</p>
+      <section className="text-center mb-16 animate-fade-in">
+        <p className="text-2xl sm:text-3xl text-[#2d3748] leading-relaxed max-w-4xl mx-auto">
+          Hello, my name is Ashley. I am a Mechanical Engineering graduate student @ MIT interested in mechanical design, mechatronics, and robotic systems.
+        </p>
       </section>
       <section className="w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
