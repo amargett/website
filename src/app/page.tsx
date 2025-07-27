@@ -2,6 +2,8 @@ import { client } from "../sanity/lib/client";
 import Image from "next/image";
 import { urlFor } from "../sanity/lib/image"; // adjust if needed
 
+export const dynamic = "force-dynamic";
+
 const featuredProjectsQuery = `*[_type == "featuredProject"]|order(order asc){
   _id,
   title,
