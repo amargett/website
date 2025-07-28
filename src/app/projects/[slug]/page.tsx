@@ -1,9 +1,12 @@
 import { client } from "../../../sanity/lib/client";
 import { urlFor } from "../../../sanity/lib/image";
+import { urlForFile } from "../../../sanity/lib/file";
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
+import HoverVideo from "../../../components/HoverVideo";
 import { notFound } from "next/navigation";
+import { projectId, dataset } from "../../../sanity/env";
 
 export const dynamic = "force-dynamic";
 
@@ -40,17 +43,20 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function ProjectPage({ params }: { params: { slug: string } }) {
+export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   let project = null;
   
   try {
-    project = await client.fetch(projectQuery, { slug: params.slug });
+    project = await client.fetch(projectQuery, { slug });
   } catch (err) {
     console.error("Sanity fetch failed:", err);
+    // Return a working page even if Sanity fails
     return (
       <main className="max-w-4xl mx-auto px-4 py-12">
-        <div className="text-center text-gray-500">
-          <p>Project not found or error loading content.</p>
+        <div className="text-center text-[#64748b]">
+          <p>Content is currently being loaded...</p>
+          <p className="text-sm mt-2">If this persists, please check the Sanity configuration.</p>
         </div>
       </main>
     );
@@ -65,7 +71,7 @@ export default async function ProjectPage({ params }: { params: { slug: string }
       case 'research': return 'Research';
       case 'industry': return 'Industry';
       case 'coursework': return 'Coursework';
-      case 'activities': return 'Activities';
+      case 'extracurriculars': return 'Extracurriculars';
       default: return category;
     }
   };
@@ -90,7 +96,7 @@ export default async function ProjectPage({ params }: { params: { slug: string }
             <strong>Role:</strong> {project.role}
           </div>
         );
-      case 'activities':
+      case 'extracurriculars':
         return project.organization && (
           <div className="text-sm text-gray-500 mb-2">
             <strong>Organization:</strong> {project.organization}
@@ -105,8 +111,8 @@ export default async function ProjectPage({ params }: { params: { slug: string }
     <main className="max-w-4xl mx-auto px-4 py-12">
       {/* Breadcrumb */}
       <nav className="mb-8">
-        <Link href={`/${project.category}`} className="text-blue-600 hover:underline">
-          ← Back to {getCategoryDisplayName(project.category)}
+        <Link href="/projects" className="text-blue-600 hover:underline">
+          ← See All Projects
         </Link>
       </nav>
 
@@ -131,21 +137,46 @@ export default async function ProjectPage({ params }: { params: { slug: string }
       {/* Main Media */}
       {project.mainMedia && (
         <div className="mb-8">
-          {project.mainMedia.type === 'image' && project.mainMedia.image ? (
-            <Image
-              src={urlFor(project.mainMedia.image)?.url() || ''}
-              alt={project.mainMedia.alt}
-              width={800}
-              height={400}
-              className="w-full h-64 object-cover rounded-lg"
-            />
-          ) : project.mainMedia.type === 'video' && project.mainMedia.videoUrl ? (
-            <video
-              src={project.mainMedia.videoUrl}
-              controls
-              className="w-full h-64 object-cover rounded-lg"
-            />
-          ) : null}
+          {(() => {
+            let videoUrl = null;
+            
+            // Try to get the video URL from the asset directly
+            if (project.mainMedia.videoFile?.asset?.url) {
+              videoUrl = project.mainMedia.videoFile.asset.url;
+            } else if (project.mainMedia.videoFile?.asset?._ref) {
+              // Extract the file ID from the asset reference
+              const assetRef = project.mainMedia.videoFile.asset._ref;
+              const fileId = assetRef.replace('file-', '').split('-').slice(0, -1).join('-');
+              videoUrl = `https://cdn.sanity.io/files/${projectId}/${dataset}/${fileId}.mp4`;
+            } else if (project.mainMedia.videoUrl) {
+              videoUrl = project.mainMedia.videoUrl;
+            }
+            
+            // Debug logging for video issues
+            if (project.mainMedia?.type === 'video') {
+              // Video URL construction is handled in the component
+            }
+            
+            if (project.mainMedia.type === 'image' && project.mainMedia.image) {
+              return (
+                <Image
+                  src={urlFor(project.mainMedia.image)?.url() || ''}
+                  alt={project.mainMedia.alt}
+                  width={800}
+                  height={400}
+                  className="w-full h-64 object-cover rounded-lg"
+                />
+              );
+            } else if (project.mainMedia.type === 'video' && videoUrl) {
+              return (
+                <HoverVideo
+                  src={videoUrl}
+                  className="w-full h-64 rounded-lg"
+                />
+              );
+            }
+            return null;
+          })()}
         </div>
       )}
 

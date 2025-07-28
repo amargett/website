@@ -30,7 +30,7 @@ export default defineType({
           {title: 'Research', value: 'research'},
           {title: 'Industry', value: 'industry'},
           {title: 'Coursework', value: 'coursework'},
-          {title: 'Activities', value: 'activities'},
+          {title: 'Extracurriculars', value: 'extracurriculars'},
         ],
       },
       validation: Rule => Rule.required()
@@ -88,9 +88,19 @@ export default defineType({
           hidden: ({parent}) => parent?.type !== 'image'
         },
         {
+          name: 'videoFile',
+          title: 'Video/GIF File',
+          type: 'file',
+          options: {
+            accept: 'video/*,.gif'
+          },
+          hidden: ({parent}) => parent?.type !== 'video'
+        },
+        {
           name: 'videoUrl',
-          title: 'Video/GIF URL',
+          title: 'Video/GIF URL (Alternative)',
           type: 'url',
+          description: 'Use this if you prefer to host the video externally',
           hidden: ({parent}) => parent?.type !== 'video'
         },
         {
@@ -157,7 +167,7 @@ export default defineType({
       name: 'organization', 
       title: 'Organization', 
       type: 'string',
-      hidden: ({document}) => document?.category !== 'activities'
+      hidden: ({document}) => document?.category !== 'extracurriculars'
     }),
     defineField({ 
       name: 'links', 
