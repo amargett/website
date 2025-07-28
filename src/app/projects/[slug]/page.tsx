@@ -71,7 +71,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       case 'research': return 'Research';
       case 'industry': return 'Industry';
       case 'coursework': return 'Coursework';
-      case 'extracurriculars': return 'Extracurriculars';
+      case 'extracurricular': return 'Extracurricular';
       default: return category;
     }
   };
@@ -96,7 +96,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             <strong>Role:</strong> {project.role}
           </div>
         );
-      case 'extracurriculars':
+      case 'extracurricular':
         return project.organization && (
           <div className="text-sm text-gray-500 mb-2">
             <strong>Organization:</strong> {project.organization}

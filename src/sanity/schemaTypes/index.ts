@@ -5,7 +5,8 @@ import research from './research'
 import industry from './industry'
 import coursework from './coursework'
 import activity from './activities'
+import about from './about'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [project, featuredProject, research, industry, coursework, activity],
+  types: [project, featuredProject, research, industry, coursework, activity, about],
 }

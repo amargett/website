@@ -30,7 +30,7 @@ export default defineType({
           {title: 'Research', value: 'research'},
           {title: 'Industry', value: 'industry'},
           {title: 'Coursework', value: 'coursework'},
-          {title: 'Extracurriculars', value: 'extracurriculars'},
+          {title: 'Extracurricular', value: 'extracurricular'},
         ],
       },
       validation: Rule => Rule.required()
@@ -167,7 +167,7 @@ export default defineType({
       name: 'organization', 
       title: 'Organization', 
       type: 'string',
-      hidden: ({document}) => document?.category !== 'extracurriculars'
+      hidden: ({document}) => document?.category !== 'extracurricular'
     }),
     defineField({ 
       name: 'links', 

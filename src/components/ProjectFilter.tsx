@@ -18,15 +18,15 @@ export default function ProjectFilter({ categories, onFilterChange }: ProjectFil
   const getCategoryColor = (category: string) => {
     switch (category.toLowerCase()) {
       case 'research':
-        return 'bg-[#0a4a5a] text-white hover:bg-[#0a4a5a]/80';
+        return 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'; // Light gray bg, dark gray text
       case 'industry':
-        return 'bg-[#0a5a52] text-white hover:bg-[#0a5a52]/80';
+        return 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'; // Light gray bg, dark gray text
       case 'coursework':
-        return 'bg-[#f97316] text-white hover:bg-[#f97316]/80';
-      case 'extracurriculars':
-        return 'bg-[#8b5cf6] text-white hover:bg-[#8b5cf6]/80';
+        return 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'; // Light gray bg, dark gray text
+      case 'extracurricular': // Changed from extracurriculars
+        return 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'; // Light gray bg, dark gray text
       default:
-        return 'bg-[#64748b] text-white hover:bg-[#64748b]/80';
+        return 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'; // Light gray bg, dark gray text
     }
   };
 

@@ -38,7 +38,7 @@ export default function ProjectsList({ projects }: ProjectsListProps) {
   const categories = useMemo(() => {
     const uniqueCategories = [...new Set(projects.map(project => project.category))];
     // Define the desired order
-    const categoryOrder = ['coursework', 'industry', 'research', 'extracurriculars'];
+    const categoryOrder = ['coursework', 'industry', 'research', 'extracurricular'];
     return uniqueCategories.sort((a, b) => {
       const aIndex = categoryOrder.indexOf(a.toLowerCase());
       const bIndex = categoryOrder.indexOf(b.toLowerCase());
@@ -52,15 +52,15 @@ export default function ProjectsList({ projects }: ProjectsListProps) {
   const getCategoryColor = (category: string) => {
     switch (category.toLowerCase()) {
       case 'research':
-        return 'bg-[#0a4a5a] text-white';
+        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
       case 'industry':
-        return 'bg-[#0a5a52] text-white';
+        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
       case 'coursework':
-        return 'bg-[#f97316] text-white';
-      case 'extracurriculars':
-        return 'bg-[#8b5cf6] text-white';
+        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
+      case 'extracurricular': // Changed from extracurriculars
+        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
       default:
-        return 'bg-[#64748b] text-white';
+        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
     }
   };
 

@@ -76,7 +76,7 @@
   right: 0;
   width: 100%;
   height: calc(100% + 4px);
-  background: #1e293b;
+  background: #374151;
   animation: reveal-text 2s steps(25, end) forwards;
 }
 
@@ -106,16 +106,16 @@
     left: 0;
   }
   to {
-    left: 19ch;
+    left: calc(100% - 2px); /* Position cursor right before the end of text */
   }
 }
 
 @keyframes blink-caret {
-  from, to {
-    background: transparent;
+  0%, 50% {
+    opacity: 1;
   }
-  50% {
-    background: white;
+  51%, 100% {
+    opacity: 0;
   }
 }
 

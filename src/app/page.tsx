@@ -22,15 +22,15 @@ const featuredProjectsQuery = `*[_type == "project" && featured == true]|order(f
 const getCategoryColor = (category: string) => {
   switch (category.toLowerCase()) {
     case 'research':
-      return 'bg-[#0a4a5a] text-white'; // Blue from gradient
+      return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
     case 'industry':
-      return 'bg-[#0a5a52] text-white'; // Green from gradient
+      return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
     case 'coursework':
-      return 'bg-[#f97316] text-white'; // Orange from gradient
-    case 'extracurriculars': // Updated from 'activities'
-      return 'bg-[#8b5cf6] text-white'; // Purple (keeping this one)
+      return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
+    case 'extracurricular': // Updated from 'extracurriculars'
+      return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
     default:
-      return 'bg-[#64748b] text-white'; // Gray
+      return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
   }
 };
 
@@ -76,7 +76,7 @@ export default async function Home() {
   return (
     <div className="full-page-gradient">
       {/* Introduction Header */}
-      <header className="bg-[#1e293b] dark:bg-[#0f172a] text-white py-16 sm:py-24 lg:py-32 pb-32 sm:pb-48 lg:pb-64 fixed top-0 left-0 right-0 z-10">
+      <header className="bg-gray-700 dark:bg-gray-800 text-white py-16 sm:py-24 lg:py-32 pb-32 sm:pb-48 lg:pb-64 fixed top-0 left-0 right-0 z-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="space-y-3 max-w-4xl animate-fade-in">
             <div className="typewriter-greeting">
