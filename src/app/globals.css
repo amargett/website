@@ -76,7 +76,7 @@
   right: 0;
   width: 100%;
   height: calc(100% + 4px);
-  background: #374151;
+  background: #0a4a5a; /* Dark blue to match header */
   animation: reveal-text 2s steps(25, end) forwards;
 }
 

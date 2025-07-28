@@ -76,7 +76,7 @@ export default async function Home() {
   return (
     <div className="full-page-gradient">
       {/* Introduction Header */}
-      <header className="bg-gray-700 dark:bg-gray-800 text-white py-16 sm:py-24 lg:py-32 pb-32 sm:pb-48 lg:pb-64 fixed top-0 left-0 right-0 z-10">
+      <header className="bg-[#0a4a5a] dark:bg-[#0a4a5a] text-white py-16 sm:py-24 lg:py-32 pb-32 sm:pb-48 lg:pb-64 fixed top-0 left-0 right-0 z-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="space-y-3 max-w-4xl animate-fade-in">
             <div className="typewriter-greeting">
