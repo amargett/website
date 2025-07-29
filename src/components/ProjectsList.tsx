@@ -15,6 +15,7 @@ interface Project {
   shortDescription: string;
   mainMedia: any;
   category: string;
+  technicalSkills?: string[];
   year: number;
   institution?: string;
   publication?: string;
@@ -164,6 +165,18 @@ export default function ProjectsList({ projects }: ProjectsListProps) {
                   <p className="text-[#64748b] mb-3 leading-relaxed">
                     {project.shortDescription}
                   </p>
+                  {project.technicalSkills && project.technicalSkills.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {project.technicalSkills.map((skill: string, skillIndex: number) => (
+                        <span
+                          key={skillIndex}
+                          className="inline-block px-2 py-1 rounded text-xs font-normal bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                        >
+                          {skill.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center gap-4 text-sm text-[#64748b]">
                     {project.institution && (
                       <span className="text-[#475569] font-medium">

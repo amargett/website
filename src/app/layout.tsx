@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import Footer from "../components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <nav className="w-full flex justify-between items-center border-b border-[#475569]/10 bg-white/80 dark:bg-[#0f172a]/80 py-4 px-6 mb-8 sticky top-0 z-40 backdrop-blur-md cosmic-surface">
+        <nav className="w-full flex justify-between items-center border-b border-[#475569]/10 bg-white dark:bg-white py-4 px-6 sticky top-0 z-40 backdrop-blur-md">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-[#475569] hover:text-[#3b82f6] transition-colors">
               AM
@@ -41,19 +42,20 @@ export default function RootLayout({
           <div className="flex gap-6 sm:gap-8">
             <Link 
               href="/about" 
-              className="text-[#374151] dark:text-[#e5e7eb] hover:text-[#3b82f6] transition-colors text-sm font-medium"
+              className="text-[#374151] dark:text-[#374151] hover:text-[#3b82f6] transition-colors text-sm font-medium"
             >
               About Me
             </Link>
             <Link 
               href="/projects" 
-              className="text-[#374151] dark:text-[#e5e7eb] hover:text-[#3b82f6] transition-colors text-sm font-medium"
+              className="text-[#374151] dark:text-[#374151] hover:text-[#3b82f6] transition-colors text-sm font-medium"
             >
               Projects
             </Link>
           </div>
         </nav>
         {children}
+        <Footer />
       </body>
     </html>
   );

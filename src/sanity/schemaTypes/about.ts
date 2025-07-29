@@ -12,11 +12,15 @@ export default defineType({
       initialValue: 'About Me',
       validation: Rule => Rule.required() 
     }),
-    defineField({ 
-      name: 'photo', 
-      title: 'Profile Photo', 
+    defineField({
+      name: 'photo',
+      title: 'Profile Photo',
       type: 'image',
-      options: { hotspot: true },
+      options: { 
+        hotspot: true,
+        crop: true,
+        accept: 'image/*'
+      },
       validation: Rule => Rule.required()
     }),
     defineField({ 

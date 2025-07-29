@@ -25,26 +25,9 @@ export default async function AboutPage() {
     console.error("Sanity fetch failed:", err);
     return (
       <div className="full-page-gradient">
-        <main className="relative z-20 rounded-t-3xl pt-12 pb-16 bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
-          <div className="max-w-4xl mx-auto px-4">
-            <div className="cosmic-card rounded-xl p-8 bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-sm shadow-xl">
-              <div className="text-center text-[#64748b]">
-                <p>Content is currently being loaded...</p>
-                <p className="text-sm mt-2">If this persists, please check the Sanity configuration.</p>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  if (!aboutData) {
-    return (
-      <div className="full-page-gradient">
-        <main className="relative z-20 rounded-t-3xl pt-12 pb-16 bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
-          <div className="max-w-4xl mx-auto px-4">
-            <div className="cosmic-card rounded-xl p-8 bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-sm shadow-xl">
+        <main className="relative z-20 min-h-screen bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
+          <div className="max-w-4xl mx-auto px-4 pt-6">
+            <div className="bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-sm shadow-xl rounded-xl p-8">
               <div className="text-center text-[#64748b]">
                 <p>About page content not found.</p>
                 <p className="text-sm mt-2">Please add content in Sanity Studio.</p>
@@ -56,24 +39,39 @@ export default async function AboutPage() {
     );
   }
 
+  if (!aboutData) {
+    return (
+      <div className="full-page-gradient">
+        <main className="relative z-20 bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
+          <div className="max-w-4xl mx-auto px-4 pt-6">
+            <div className="text-center text-white">
+              <p>About page content not found.</p>
+              <p className="text-sm mt-2">Please add content in Sanity Studio.</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="full-page-gradient">
-      <main className="relative z-20 rounded-t-3xl pt-12 pb-16 bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="cosmic-card rounded-xl p-8 bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-sm shadow-xl">
+      <main className="relative z-20 min-h-screen bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
+        <div className="max-w-4xl mx-auto px-4 pt-6">
+          <div className="bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-sm shadow-xl rounded-xl p-8 min-h-[calc(100vh-200px)] flex flex-col justify-center">
             <h1 className="text-3xl font-bold mb-6 text-[#374151] dark:text-[#e5e7eb]">{aboutData.title}</h1>
             
             <div className="flex flex-col lg:flex-row gap-8 mb-8">
               {/* Profile Photo */}
               <div className="lg:w-1/3">
                 {aboutData.photo && (
-                  <div className="relative">
+                  <div className="relative max-w-xs lg:max-w-none">
                     <Image
                       src={urlFor(aboutData.photo)?.url() || ''}
                       alt="Profile Photo"
                       width={300}
                       height={300}
-                      className="w-full h-auto rounded-lg shadow-lg"
+                      className="w-48 h-48 sm:w-64 sm:h-64 lg:w-full lg:h-auto rounded-lg shadow-lg object-cover"
                     />
                   </div>
                 )}
@@ -82,7 +80,7 @@ export default async function AboutPage() {
               {/* Introduction */}
               <div className="lg:w-2/3">
                 <div className="prose prose-lg max-w-none text-[#64748b]">
-                  <p className="text-lg leading-relaxed">
+                  <p className="text-lg leading-relaxed font-medium sm:font-normal">
                     {aboutData.introduction}
                   </p>
                 </div>
@@ -102,8 +100,8 @@ export default async function AboutPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium text-[#374151] dark:text-[#e5e7eb]">Email</p>
-                  <p className="text-sm text-[#64748b]">{aboutData.email}</p>
+                  <p className="font-semibold sm:font-medium text-[#374151] dark:text-[#e5e7eb]">Email</p>
+                  <p className="text-sm font-medium sm:font-normal text-[#64748b]">{aboutData.email}</p>
                 </div>
               </a>
 
@@ -120,8 +118,8 @@ export default async function AboutPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium text-[#374151] dark:text-[#e5e7eb]">LinkedIn</p>
-                  <p className="text-sm text-[#64748b]">View Profile</p>
+                  <p className="font-semibold sm:font-medium text-[#374151] dark:text-[#e5e7eb]">LinkedIn</p>
+                  <p className="text-sm font-medium sm:font-normal text-[#64748b]">View Profile</p>
                 </div>
               </a>
 
@@ -138,8 +136,8 @@ export default async function AboutPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium text-[#374151] dark:text-[#e5e7eb]">Resume</p>
-                  <p className="text-sm text-[#64748b]">Download PDF</p>
+                  <p className="font-semibold sm:font-medium text-[#374151] dark:text-[#e5e7eb]">Resume</p>
+                  <p className="text-sm font-medium sm:font-normal text-[#64748b]">Download PDF</p>
                 </div>
               </a>
 
@@ -157,8 +155,8 @@ export default async function AboutPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-[#374151] dark:text-[#e5e7eb]">GitHub</p>
-                    <p className="text-sm text-[#64748b]">View Projects</p>
+                    <p className="font-semibold sm:font-medium text-[#374151] dark:text-[#e5e7eb]">GitHub</p>
+                    <p className="text-sm font-medium sm:font-normal text-[#64748b]">View Projects</p>
                   </div>
                 </a>
               )}

@@ -76,7 +76,7 @@
   right: 0;
   width: 100%;
   height: calc(100% + 4px);
-  background: #0a4a5a; /* Dark blue to match header */
+  background: white; /* White to match header background */
   animation: reveal-text 2s steps(25, end) forwards;
 }
 
@@ -87,7 +87,7 @@
   left: 0;
   width: 2px;
   height: 100%;
-  background: white;
+  background: #0a4a5a; /* Dark blue cursor to match text color */
   animation: move-cursor 2s steps(25, end) forwards, blink-caret 0.75s step-end 3, hide-cursor 0s forwards;
   animation-delay: 0s, 2s, 4.25s;
 }

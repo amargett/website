@@ -36,6 +36,21 @@ export default defineType({
       validation: Rule => Rule.required()
     }),
     defineField({ 
+      name: 'technicalSkills', 
+      title: 'Technical Skills', 
+      type: 'array',
+      of: [{type: 'string'}],
+      options: {
+        list: [
+          {title: 'Mechanical Design', value: 'mechanical-design'},
+          {title: 'Electronics', value: 'electronics'},
+          {title: 'Python', value: 'python'},
+          {title: 'C++', value: 'cpp'},
+        ],
+      },
+      description: 'Select all technical skills used in this project'
+    }),
+    defineField({ 
       name: 'featured', 
       title: 'Featured Project', 
       type: 'boolean', 
@@ -47,6 +62,21 @@ export default defineType({
       title: 'Featured Order', 
       type: 'number',
       description: 'Order in Featured Projects section (lower numbers appear first)',
+      hidden: ({document}) => !document?.featured
+    }),
+    defineField({ 
+      name: 'featuredLayout', 
+      title: 'Featured Layout', 
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Standard', value: 'standard'},
+          {title: 'Wide (2 columns)', value: 'wide'},
+          {title: 'Tall (2 rows)', value: 'tall'},
+        ],
+      },
+      description: 'How this project should appear in the Featured Projects grid',
+      initialValue: 'standard',
       hidden: ({document}) => !document?.featured
     }),
     defineField({ 
@@ -84,7 +114,11 @@ export default defineType({
           name: 'image',
           title: 'Image',
           type: 'image',
-          options: { hotspot: true },
+          options: { 
+            hotspot: true,
+            crop: true,
+            accept: 'image/*'
+          },
           hidden: ({parent}) => parent?.type !== 'image'
         },
         {
