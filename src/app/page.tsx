@@ -113,9 +113,9 @@ export default async function Home() {
   }
 
   return (
-    <div className="full-page-gradient">
+    <div className="full-page-gradient min-h-screen">
       {/* Introduction Header */}
-      <header className="bg-white dark:bg-white text-[#0a4a5a] pt-32 pb-32 sm:pt-24 sm:pb-40 lg:pt-40 lg:pb-80 fixed top-0 left-0 right-0 z-10">
+      <header className="bg-white dark:bg-white text-[#0a4a5a] pt-20 pb-32 sm:pt-24 sm:pb-40 lg:pt-40 lg:pb-80 fixed top-0 left-0 right-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="space-y-3 max-w-4xl animate-fade-in">
             <div className="typewriter-greeting">
@@ -131,10 +131,10 @@ export default async function Home() {
       </header>
 
       {/* Spacer to account for fixed header */}
-      <div className="h-64 sm:h-64 lg:h-120"></div> {/* Adjusted to match reduced header heights */}
+      <div className="h-52 sm:h-60 lg:h-120"></div> {/* Adjusted to match reduced header heights */}
 
       {/* Featured Projects - Overlaps Introduction */}
-      <main className="relative z-20 rounded-t-3xl pt-12 pb-16 bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
+      <main className="relative z-20 rounded-t-3xl pt-12 pb-32 bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12" style={{ gridAutoRows: 'minmax(140px, auto)', gridAutoFlow: 'dense' }}>
             {featuredProjects.length === 0 && (

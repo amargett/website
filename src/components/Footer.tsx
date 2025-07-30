@@ -32,7 +32,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="w-full bg-white dark:bg-white border-t border-[#475569]/10 py-6">
+    <footer className="relative z-30 w-full bg-white dark:bg-white border-t border-[#475569]/10 py-6">
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex justify-center items-center space-x-8">
           {/* Email */}

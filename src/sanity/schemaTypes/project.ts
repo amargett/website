@@ -86,12 +86,118 @@ export default defineType({
       description: 'Brief description for category pages (max 200 characters)',
       validation: Rule => Rule.max(200).required()
     }),
+
     defineField({ 
-      name: 'fullDescription', 
-      title: 'Full Description', 
+      name: 'content', 
+      title: 'Project Content', 
       type: 'array',
-      of: [{type: 'block'}],
-      description: 'Detailed description for the project page'
+      of: [
+        {type: 'block'},
+        {
+          type: 'object',
+          name: 'projectImage',
+          title: 'Project Image',
+          fields: [
+            {
+              name: 'image',
+              title: 'Image',
+              type: 'image',
+              options: { 
+                hotspot: true,
+                crop: true,
+                accept: 'image/*'
+              },
+              validation: Rule => Rule.required()
+            },
+            {
+              name: 'alt',
+              title: 'Alt Text',
+              type: 'string',
+              validation: Rule => Rule.required()
+            },
+            {
+              name: 'caption',
+              title: 'Caption',
+              type: 'string'
+            },
+            {
+              name: 'size',
+              title: 'Image Size',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Small', value: 'small'},
+                  {title: 'Medium', value: 'medium'},
+                  {title: 'Large', value: 'large'},
+                  {title: 'Full Width', value: 'full'},
+                ],
+              },
+              initialValue: 'medium'
+            }
+          ],
+          preview: {
+            select: {
+              media: 'image',
+              title: 'alt',
+              subtitle: 'caption'
+            }
+          }
+        },
+        {
+          type: 'object',
+          name: 'projectVideo',
+          title: 'Project Video',
+          fields: [
+            {
+              name: 'videoFile',
+              title: 'Video File',
+              type: 'file',
+              options: {
+                accept: 'video/*,.gif'
+              }
+            },
+            {
+              name: 'videoUrl',
+              title: 'Video URL (Alternative)',
+              type: 'url',
+              description: 'Use this if you prefer to host the video externally'
+            },
+            {
+              name: 'alt',
+              title: 'Alt Text',
+              type: 'string',
+              validation: Rule => Rule.required()
+            },
+            {
+              name: 'caption',
+              title: 'Caption',
+              type: 'string'
+            },
+            {
+              name: 'size',
+              title: 'Video Size',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Small', value: 'small'},
+                  {title: 'Medium', value: 'medium'},
+                  {title: 'Large', value: 'large'},
+                  {title: 'Full Width', value: 'full'},
+                ],
+              },
+              initialValue: 'medium'
+            }
+          ],
+          preview: {
+            select: {
+              media: 'videoFile',
+              title: 'alt',
+              subtitle: 'caption'
+            }
+          }
+        }
+      ],
+      description: 'Write your project content here. You can add text, images, and videos inline as you go.'
     }),
     defineField({ 
       name: 'mainMedia', 
@@ -146,50 +252,17 @@ export default defineType({
       ],
       validation: Rule => Rule.required()
     }),
-    defineField({ 
-      name: 'gallery', 
-      title: 'Project Gallery', 
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            {
-              name: 'image',
-              title: 'Image',
-              type: 'image',
-              options: { hotspot: true }
-            },
-            {
-              name: 'caption',
-              title: 'Caption',
-              type: 'string'
-            }
-          ]
-        }
-      ]
-    }),
+
     defineField({ 
       name: 'year', 
       title: 'Year', 
       type: 'number' 
     }),
     defineField({ 
-      name: 'institution', 
-      title: 'Institution/Company', 
-      type: 'string' 
-    }),
-    defineField({ 
       name: 'publication', 
       title: 'Publication', 
       type: 'string',
       hidden: ({document}) => document?.category !== 'research'
-    }),
-    defineField({ 
-      name: 'courseCode', 
-      title: 'Course Code', 
-      type: 'string',
-      hidden: ({document}) => document?.category !== 'coursework'
     }),
     defineField({ 
       name: 'role', 
@@ -202,43 +275,6 @@ export default defineType({
       title: 'Organization', 
       type: 'string',
       hidden: ({document}) => document?.category !== 'extracurricular'
-    }),
-    defineField({ 
-      name: 'links', 
-      title: 'Links', 
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            {
-              name: 'label',
-              title: 'Label',
-              type: 'string',
-              options: {
-                list: [
-                  {title: 'GitHub', value: 'github'},
-                  {title: 'Demo', value: 'demo'},
-                  {title: 'Paper', value: 'paper'},
-                  {title: 'Website', value: 'website'},
-                  {title: 'Other', value: 'other'},
-                ],
-              }
-            },
-            {
-              name: 'url',
-              title: 'URL',
-              type: 'url'
-            }
-          ]
-        }
-      ]
-    }),
-    defineField({ 
-      name: 'technologies', 
-      title: 'Technologies Used', 
-      type: 'array',
-      of: [{type: 'string'}]
     }),
   ],
   preview: {

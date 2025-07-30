@@ -8,6 +8,76 @@ import HoverVideo from "../../../components/HoverVideo";
 import { notFound } from "next/navigation";
 import { projectId, dataset } from "../../../sanity/env";
 
+// Custom components for PortableText
+const ProjectImage = ({ value }: { value: any }) => {
+  const imageUrl = urlFor(value.image)?.url();
+  if (!imageUrl) return null;
+
+  const sizeClasses = {
+    small: 'max-w-sm',
+    medium: 'max-w-2xl',
+    large: 'max-w-4xl',
+    full: 'w-full'
+  };
+
+  return (
+    <div className={`my-8 mx-auto ${sizeClasses[value.size as keyof typeof sizeClasses] || sizeClasses.medium}`}>
+      <Image
+        src={imageUrl}
+        alt={value.alt}
+        width={800}
+        height={600}
+        className="w-full h-auto rounded-lg shadow-lg"
+      />
+      {value.caption && (
+        <p className="text-sm text-gray-600 text-center mt-2 italic">{value.caption}</p>
+      )}
+    </div>
+  );
+};
+
+const ProjectVideo = ({ value }: { value: any }) => {
+  let videoUrl = null;
+  
+  if (value.videoFile?.asset?.url) {
+    videoUrl = value.videoFile.asset.url;
+  } else if (value.videoFile?.asset?._ref) {
+    const assetRef = value.videoFile.asset._ref;
+    const fileId = assetRef.replace('file-', '').split('-').slice(0, -1).join('-');
+    videoUrl = `https://cdn.sanity.io/files/${projectId}/${dataset}/${fileId}.mp4`;
+  } else if (value.videoUrl) {
+    videoUrl = value.videoUrl;
+  }
+
+  if (!videoUrl) return null;
+
+  const sizeClasses = {
+    small: 'max-w-sm',
+    medium: 'max-w-2xl',
+    large: 'max-w-4xl',
+    full: 'w-full'
+  };
+
+  return (
+    <div className={`my-8 mx-auto ${sizeClasses[value.size as keyof typeof sizeClasses] || sizeClasses.medium}`}>
+      <HoverVideo
+        src={videoUrl}
+        className="w-full h-auto rounded-lg shadow-lg"
+      />
+      {value.caption && (
+        <p className="text-sm text-gray-600 text-center mt-2 italic">{value.caption}</p>
+      )}
+    </div>
+  );
+};
+
+const portableTextComponents = {
+  types: {
+    projectImage: ProjectImage,
+    projectVideo: ProjectVideo,
+  },
+};
+
 export const dynamic = "force-dynamic";
 
 const projectQuery = `*[_type == "project" && slug.current == $slug][0]{
@@ -16,17 +86,13 @@ const projectQuery = `*[_type == "project" && slug.current == $slug][0]{
   slug,
   category,
   shortDescription,
-  fullDescription,
+  content,
   mainMedia,
-  gallery,
+  technicalSkills,
   year,
-  institution,
   publication,
-  courseCode,
   role,
-  organization,
-  links,
-  technologies
+  organization
 }`;
 
 const allProjectsQuery = `*[_type == "project"]{
@@ -109,13 +175,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-12">
-      {/* Breadcrumb */}
-      <nav className="mb-8">
-        <Link href="/projects" className="text-blue-600 hover:underline">
-          ← See All Projects
-        </Link>
-      </nav>
-
       {/* Header */}
       <header className="mb-8">
         <div className="flex items-center gap-4 mb-4">
@@ -127,11 +186,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
         <h1 className="text-4xl font-bold mb-4">{project.title}</h1>
-        {project.institution && (
-          <p className="text-lg text-gray-600 mb-2">{project.institution}</p>
-        )}
         {getCategorySpecificInfo()}
-        <p className="text-gray-700 text-lg">{project.shortDescription}</p>
+        <p className="text-gray-700 text-lg mb-4">{project.shortDescription}</p>
+        {project.technicalSkills && project.technicalSkills.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {project.technicalSkills.map((skill: string, skillIndex: number) => (
+              <span
+                key={skillIndex}
+                className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+              >
+                {skill.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              </span>
+            ))}
+          </div>
+        )}
       </header>
 
       {/* Main Media */}
@@ -180,77 +248,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
       )}
 
-      {/* Full Description */}
-      {project.fullDescription && (
+      {/* Project Content */}
+      {project.content && project.content.length > 0 && (
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Description</h2>
           <div className="prose max-w-none">
-            <PortableText value={project.fullDescription} />
+            <PortableText value={project.content} components={portableTextComponents} />
           </div>
         </section>
       )}
 
-      {/* Technologies */}
-      {project.technologies && project.technologies.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Technologies Used</h2>
-          <div className="flex flex-wrap gap-2">
-            {project.technologies.map((tech: string, index: number) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm"
-              >
-                {tech}
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
 
-      {/* Links */}
-      {project.links && project.links.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Links</h2>
-          <div className="flex flex-wrap gap-4">
-            {project.links.map((link: any, index: number) => (
-              <a
-                key={index}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
 
-      {/* Gallery */}
-      {project.gallery && project.gallery.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Gallery</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {project.gallery.map((item: any, index: number) => (
-              <div key={index} className="space-y-2">
-                {item.image && (
-                  <Image
-                    src={urlFor(item.image)?.url() || ''}
-                    alt={item.caption || `Gallery image ${index + 1}`}
-                    width={400}
-                    height={300}
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                )}
-                {item.caption && (
-                  <p className="text-sm text-gray-600 text-center">{item.caption}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+
+
+
     </main>
   );
 } 
