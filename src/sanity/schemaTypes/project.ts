@@ -133,6 +133,36 @@ export default defineType({
                 ],
               },
               initialValue: 'medium'
+            },
+            {
+              name: 'objectFit',
+              title: 'Image Fit',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Cover (crop to fill)', value: 'cover'},
+                  {title: 'Contain (show full image)', value: 'contain'},
+                  {title: 'Fill (stretch)', value: 'fill'},
+                ],
+              },
+              description: 'How the image should be displayed',
+              initialValue: 'cover'
+            },
+            {
+              name: 'aspectRatio',
+              title: 'Aspect Ratio',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Auto (natural)', value: 'auto'},
+                  {title: 'Square (1:1)', value: 'square'},
+                  {title: 'Landscape (16:9)', value: 'landscape'},
+                  {title: 'Portrait (3:4)', value: 'portrait'},
+                  {title: 'Wide (21:9)', value: 'wide'},
+                ],
+              },
+              description: 'Force a specific aspect ratio',
+              initialValue: 'auto'
             }
           ],
           preview: {
@@ -186,6 +216,22 @@ export default defineType({
                 ],
               },
               initialValue: 'medium'
+            },
+            {
+              name: 'aspectRatio',
+              title: 'Aspect Ratio',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Auto (natural)', value: 'auto'},
+                  {title: 'Square (1:1)', value: 'square'},
+                  {title: 'Landscape (16:9)', value: 'landscape'},
+                  {title: 'Portrait (3:4)', value: 'portrait'},
+                  {title: 'Wide (21:9)', value: 'wide'},
+                ],
+              },
+              description: 'Force a specific aspect ratio',
+              initialValue: 'auto'
             }
           ],
           preview: {
@@ -198,6 +244,13 @@ export default defineType({
         }
       ],
       description: 'Write your project content here. You can add text, images, and videos inline as you go.'
+    }),
+    defineField({ 
+      name: 'showMainMedia', 
+      title: 'Show Main Media on Project Page', 
+      type: 'boolean',
+      description: 'Toggle to show/hide the main media at the top of the project page',
+      initialValue: true
     }),
     defineField({ 
       name: 'mainMedia', 

@@ -20,15 +20,31 @@ const ProjectImage = ({ value }: { value: any }) => {
     full: 'w-full'
   };
 
+  const aspectRatioClasses = {
+    auto: 'h-auto',
+    square: 'aspect-square',
+    landscape: 'aspect-video',
+    portrait: 'aspect-[9/16]',
+    wide: 'aspect-[21/9]'
+  };
+
+  const objectFitClasses = {
+    cover: 'object-cover',
+    contain: 'object-contain',
+    fill: 'object-fill'
+  };
+
   return (
     <div className={`my-8 mx-auto ${sizeClasses[value.size as keyof typeof sizeClasses] || sizeClasses.medium}`}>
-      <Image
-        src={imageUrl}
-        alt={value.alt}
-        width={800}
-        height={600}
-        className="w-full h-auto rounded-lg shadow-lg"
-      />
+      <div className={`${aspectRatioClasses[value.aspectRatio as keyof typeof aspectRatioClasses] || aspectRatioClasses.auto}`}>
+        <Image
+          src={imageUrl}
+          alt={value.alt}
+          width={800}
+          height={600}
+          className={`w-full rounded-lg shadow-lg ${objectFitClasses[value.objectFit as keyof typeof objectFitClasses] || objectFitClasses.cover}`}
+        />
+      </div>
       {value.caption && (
         <p className="text-sm text-gray-600 text-center mt-2 italic">{value.caption}</p>
       )}
@@ -58,12 +74,22 @@ const ProjectVideo = ({ value }: { value: any }) => {
     full: 'w-full'
   };
 
+  const aspectRatioClasses = {
+    auto: 'h-auto',
+    square: 'aspect-square',
+    landscape: 'aspect-video',
+    portrait: 'aspect-[9/16]',
+    wide: 'aspect-[21/9]'
+  };
+
   return (
     <div className={`my-8 mx-auto ${sizeClasses[value.size as keyof typeof sizeClasses] || sizeClasses.medium}`}>
-      <HoverVideo
-        src={videoUrl}
-        className="w-full h-auto rounded-lg shadow-lg"
-      />
+      <div className={`${aspectRatioClasses[value.aspectRatio as keyof typeof aspectRatioClasses] || aspectRatioClasses.auto} relative`}>
+        <HoverVideo
+          src={videoUrl}
+          className="w-full h-full absolute inset-0 rounded-lg shadow-lg object-cover"
+        />
+      </div>
       {value.caption && (
         <p className="text-sm text-gray-600 text-center mt-2 italic">{value.caption}</p>
       )}
@@ -88,6 +114,7 @@ const projectQuery = `*[_type == "project" && slug.current == $slug][0]{
   shortDescription,
   content,
   mainMedia,
+  showMainMedia,
   technicalSkills,
   year,
   publication,
@@ -203,7 +230,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       </header>
 
       {/* Main Media */}
-      {project.mainMedia && (
+      {project.showMainMedia && project.mainMedia && (
         <div className="mb-8">
           {(() => {
             let videoUrl = null;
@@ -230,16 +257,16 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                 <Image
                   src={urlFor(project.mainMedia.image)?.url() || ''}
                   alt={project.mainMedia.alt}
-                  width={800}
-                  height={400}
-                  className="w-full h-64 object-cover rounded-lg"
+                  width={1200}
+                  height={800}
+                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-lg"
                 />
               );
             } else if (project.mainMedia.type === 'video' && videoUrl) {
               return (
                 <HoverVideo
                   src={videoUrl}
-                  className="w-full h-64 rounded-lg"
+                  className="w-full h-auto max-h-96 rounded-lg shadow-lg"
                 />
               );
             }

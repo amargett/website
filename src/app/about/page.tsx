@@ -1,6 +1,7 @@
 import { client } from "../../sanity/lib/client";
 import { urlFor } from "../../sanity/lib/image";
 import { urlForFile } from "../../sanity/lib/file";
+import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export default async function AboutPage() {
     return (
       <div className="full-page-gradient">
         <main className="relative z-20 min-h-screen bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
-          <div className="max-w-4xl mx-auto px-4 pt-6">
+          <div className="max-w-6xl mx-auto px-4 pt-6">
             <div className="bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-sm shadow-xl rounded-xl p-8">
               <div className="text-center text-[#64748b]">
                 <p>About page content not found.</p>
@@ -43,7 +44,7 @@ export default async function AboutPage() {
     return (
       <div className="full-page-gradient">
         <main className="relative z-20 bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
-          <div className="max-w-4xl mx-auto px-4 pt-6">
+          <div className="max-w-6xl mx-auto px-4 pt-6">
             <div className="text-center text-white">
               <p>About page content not found.</p>
               <p className="text-sm mt-2">Please add content in Sanity Studio.</p>
@@ -57,11 +58,11 @@ export default async function AboutPage() {
   return (
     <div className="full-page-gradient">
       <main className="relative z-20 min-h-screen bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
-        <div className="max-w-4xl mx-auto px-4 pt-6">
+        <div className="max-w-6xl mx-auto px-4 pt-6">
           <div className="bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-sm shadow-xl rounded-xl p-8 min-h-[calc(100vh-200px)] flex flex-col justify-center">
             <h1 className="text-3xl font-bold mb-6 text-[#374151] dark:text-[#e5e7eb]">{aboutData.title}</h1>
             
-            <div className="flex flex-col lg:flex-row gap-8 mb-8">
+            <div className="flex flex-col lg:flex-row gap-8 mb-8 items-start lg:items-center">
               {/* Profile Photo */}
               <div className="lg:w-1/3">
                 {aboutData.photo && (
@@ -78,11 +79,9 @@ export default async function AboutPage() {
               </div>
               
               {/* Introduction */}
-              <div className="lg:w-2/3">
-                <div className="prose prose-lg max-w-none text-[#64748b]">
-                  <p className="text-lg leading-relaxed font-medium sm:font-normal">
-                    {aboutData.introduction}
-                  </p>
+              <div className="lg:w-2/3 lg:flex lg:items-center">
+                <div className="prose prose-base max-w-none text-[#64748b] text-base leading-relaxed font-light" style={{ fontFamily: 'var(--font-inter)' }}>
+                  <PortableText value={aboutData.introduction} />
                 </div>
               </div>
             </div>

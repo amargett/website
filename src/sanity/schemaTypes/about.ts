@@ -18,7 +18,6 @@ export default defineType({
       type: 'image',
       options: { 
         hotspot: true,
-        crop: true,
         accept: 'image/*'
       },
       validation: Rule => Rule.required()
@@ -26,9 +25,10 @@ export default defineType({
     defineField({ 
       name: 'introduction', 
       title: 'Introduction', 
-      type: 'text',
-      description: 'A brief introduction about yourself (max 500 characters)',
-      validation: Rule => Rule.max(500).required()
+      type: 'array',
+      of: [{type: 'block'}],
+      description: 'A rich text introduction about yourself. You can add formatting, links, and structure.',
+      validation: Rule => Rule.required()
     }),
     defineField({ 
       name: 'email', 
