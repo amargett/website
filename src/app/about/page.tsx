@@ -12,7 +12,11 @@ const aboutQuery = `*[_type == "about"][0]{
   introduction,
   email,
   linkedin,
-  resume,
+  resume{
+    asset->{
+      url
+    }
+  },
   github,
   website
 }`;
