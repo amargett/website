@@ -46,7 +46,7 @@ const ProjectImage = ({ value }: { value: any }) => {
         />
       </div>
       {value.caption && (
-        <p className="text-sm text-gray-600 text-center mt-2 italic">{value.caption}</p>
+        <p className="text-sm text-[var(--tg-dim)] text-center mt-2 italic">{value.caption}</p>
       )}
     </div>
   );
@@ -91,7 +91,7 @@ const ProjectVideo = ({ value }: { value: any }) => {
         />
       </div>
       {value.caption && (
-        <p className="text-sm text-gray-600 text-center mt-2 italic">{value.caption}</p>
+        <p className="text-sm text-[var(--tg-dim)] text-center mt-2 italic">{value.caption}</p>
       )}
     </div>
   );
@@ -146,11 +146,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     console.error("Sanity fetch failed:", err);
     // Return a working page even if Sanity fails
     return (
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        <div className="text-center text-[#64748b]">
-          <p>Content is currently being loaded...</p>
-          <p className="text-sm mt-2">If this persists, please check the Sanity configuration.</p>
-        </div>
+      <main className="tg-mono max-w-4xl mx-auto px-4 py-16 relative z-10">
+        <p className="text-[var(--tg-amber)]">$ cat project.md</p>
+        <p className="text-[var(--tg-dim)] text-sm mt-2">// content is loading… if this persists, check the Sanity configuration.</p>
       </main>
     );
   }
@@ -173,25 +171,25 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     switch (project.category) {
       case 'research':
         return project.publication && (
-          <div className="text-sm text-gray-500 mb-2">
+          <div className="tg-mono text-sm text-[var(--tg-dim)] mb-2">
             <strong>Publication:</strong> {project.publication}
           </div>
         );
       case 'coursework':
         return project.courseCode && (
-          <div className="text-sm text-gray-500 mb-2">
+          <div className="tg-mono text-sm text-[var(--tg-dim)] mb-2">
             <strong>Course:</strong> {project.courseCode}
           </div>
         );
       case 'industry':
         return project.role && (
-          <div className="text-sm text-gray-500 mb-2">
+          <div className="tg-mono text-sm text-[var(--tg-dim)] mb-2">
             <strong>Role:</strong> {project.role}
           </div>
         );
       case 'extracurricular':
         return project.organization && (
-          <div className="text-sm text-gray-500 mb-2">
+          <div className="tg-mono text-sm text-[var(--tg-dim)] mb-2">
             <strong>Organization:</strong> {project.organization}
           </div>
         );
@@ -201,26 +199,34 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-12">
+    <main className="max-w-4xl mx-auto px-4 py-12 relative z-10">
+      {/* Back link */}
+      <Link
+        href="/projects"
+        className="tg-mono inline-block text-sm text-[var(--tg-green)] hover:text-[var(--tg-amber)] transition-colors mb-6"
+      >
+        ← cd ~/projects
+      </Link>
+
       {/* Header */}
       <header className="mb-8">
-        <div className="flex items-center gap-4 mb-4">
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+        <div className="tg-mono flex items-center gap-4 mb-4 text-sm">
+          <span className="px-2.5 py-1 rounded-md border border-[var(--tg-amber)]/50 text-[var(--tg-amber)] font-medium">
             {getCategoryDisplayName(project.category)}
           </span>
           {project.year && (
-            <span className="text-gray-500">{project.year}</span>
+            <span className="text-[var(--tg-dim)]">{project.year}</span>
           )}
         </div>
-        <h1 className="text-4xl font-bold mb-4">{project.title}</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-[var(--tg-fg)]">{project.title}</h1>
         {getCategorySpecificInfo()}
-        <p className="text-gray-700 text-lg mb-4">{project.shortDescription}</p>
+        <p className="text-[var(--tg-dim)] text-lg mb-4 leading-relaxed">{project.shortDescription}</p>
         {project.technicalSkills && project.technicalSkills.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {project.technicalSkills.map((skill: string, skillIndex: number) => (
               <span
                 key={skillIndex}
-                className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                className="tg-chip tg-mono inline-block px-3 py-1 rounded-md text-sm"
               >
                 {skill.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </span>
@@ -278,7 +284,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       {/* Project Content */}
       {project.content && project.content.length > 0 && (
         <section className="mb-8">
-          <div className="prose max-w-none">
+          <div className="tg-prose max-w-none">
             <PortableText value={project.content} components={portableTextComponents} />
           </div>
         </section>

@@ -32,13 +32,13 @@ export default function Footer() {
   }
 
   return (
-    <footer className="relative z-30 w-full bg-white dark:bg-white border-t border-[#475569]/10 py-6">
-      <div className="max-w-6xl mx-auto px-6">
+    <footer className="tg-mono relative z-30 w-full bg-[var(--tg-bg-2)]/85 backdrop-blur-md border-t border-[var(--tg-border)] py-6">
+      <div className="max-w-6xl mx-auto px-6 flex flex-col items-center gap-3">
         <div className="flex justify-center items-center space-x-8">
           {/* Email */}
-          <a 
+          <a
             href={`mailto:${aboutData.email}`}
-            className="text-[#475569] hover:text-[#3b82f6] transition-colors"
+            className="text-[var(--tg-dim)] hover:text-[var(--tg-green)] transition-colors"
             aria-label="Email"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +51,7 @@ export default function Footer() {
             href={aboutData.linkedin}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#475569] hover:text-[#3b82f6] transition-colors"
+            className="text-[var(--tg-dim)] hover:text-[var(--tg-green)] transition-colors"
             aria-label="LinkedIn"
           >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -65,7 +65,7 @@ export default function Footer() {
               href={aboutData.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#475569] hover:text-[#3b82f6] transition-colors"
+              className="text-[var(--tg-dim)] hover:text-[var(--tg-green)] transition-colors"
               aria-label="GitHub"
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -74,6 +74,9 @@ export default function Footer() {
             </a>
           )}
         </div>
+        <p className="text-xs text-[var(--tg-dim)]/70">
+          <span className="text-[var(--tg-green)]">$</span> echo &quot;built by Ashley Margetts&quot;
+        </p>
       </div>
     </footer>
   );

@@ -50,56 +50,38 @@ export default function ProjectsList({ projects }: ProjectsListProps) {
     });
   }, [projects]);
 
-  const getCategoryColor = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'research':
-        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
-      case 'industry':
-        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
-      case 'coursework':
-        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
-      case 'extracurricular': // Changed from extracurriculars
-        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
-      default:
-        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'; // Light gray bg, dark gray text
-    }
-  };
+  const humanize = (s: string) =>
+    s.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
   return (
     <div>
       {/* Filter Buttons */}
-      <div className="flex flex-wrap gap-3 mb-8">
+      <div className="flex flex-wrap gap-2.5 mb-8">
         <button
           onClick={() => setActiveFilter(null)}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-            activeFilter === null
-              ? 'bg-[#374151] text-white'
-              : 'bg-white/80 dark:bg-[#1e293b]/80 text-[#374151] dark:text-[#e5e7eb] hover:bg-white dark:hover:bg-[#1e293b]'
+          className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
+            activeFilter === null ? 'tg-btn tg-btn-active' : 'tg-btn'
           }`}
         >
-          All Projects
+          all
         </button>
         {categories.map((category) => (
           <button
             key={category}
             onClick={() => setActiveFilter(category)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeFilter === category
-                ? getCategoryColor(category)
-                : 'bg-white/80 dark:bg-[#1e293b]/80 text-[#374151] dark:text-[#e5e7eb] hover:bg-white dark:hover:bg-[#1e293b]'
+            className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
+              activeFilter === category ? 'tg-btn tg-btn-active' : 'tg-btn'
             }`}
           >
-            {category}
+            {humanize(category)}
           </button>
         ))}
       </div>
 
       {/* Projects List */}
-      <div className="space-y-8">
+      <div className="space-y-6">
         {filteredProjects.length === 0 && (
-          <div className="text-center text-[#64748b]">
-            <p>No projects found for this category.</p>
-          </div>
+          <p className="tg-mono text-[var(--tg-dim)] text-sm">// no projects found for this category.</p>
         )}
         {filteredProjects.map((project) => {
           const imageUrl = project.mainMedia?.type === 'image' && project.mainMedia.image 
@@ -132,7 +114,7 @@ export default function ProjectsList({ projects }: ProjectsListProps) {
               href={`/projects/${project.slug.current}`}
               className="group"
             >
-              <article className="flex flex-col sm:flex-row gap-6 p-6 cosmic-card rounded-xl hover:shadow-xl transition-all duration-300">
+              <article className="tg-card flex flex-col sm:flex-row gap-6 p-5">
                 <div className="w-full sm:w-48 h-48 sm:h-32 flex-shrink-0">
                   {imageUrl ? (
                     <Image
@@ -140,72 +122,60 @@ export default function ProjectsList({ projects }: ProjectsListProps) {
                       alt={project.mainMedia.alt}
                       width={400}
                       height={200}
-                      className="w-full h-full object-cover rounded-lg"
+                      className="w-full h-full object-cover rounded-lg border border-[var(--tg-border)]"
                     />
                   ) : videoUrl ? (
                     <HoverVideo
                       src={videoUrl}
-                      className="w-full h-full object-cover rounded-lg"
+                      className="w-full h-full object-cover rounded-lg border border-[var(--tg-border)]"
                     />
                   ) : (
-                    <div className="w-full h-full bg-[#e2e8f0] dark:bg-[#334155] rounded-lg flex items-center justify-center">
-                      <span className="text-[#64748b] text-sm">No media</span>
+                    <div className="w-full h-full rounded-lg border border-[var(--tg-border)] flex items-center justify-center bg-[rgba(236,224,203,0.02)]">
+                      <span className="tg-mono text-[var(--tg-dim)] text-sm">// no media</span>
                     </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-xl font-bold text-[#374151] dark:text-[#e5e7eb] group-hover:text-[#475569] transition-colors">
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <h3 className="text-xl font-semibold text-[var(--tg-fg)] group-hover:text-[var(--tg-green)] transition-colors">
                       {project.title}
                     </h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-4 shadow-sm ${getCategoryColor(project.category)}`}>
-                      {project.category}
+                    <span className="tg-mono px-2.5 py-1 rounded-md text-xs font-medium flex-shrink-0 border border-[var(--tg-amber)]/50 text-[var(--tg-amber)]">
+                      {humanize(project.category)}
                     </span>
                   </div>
-                  <p className="text-[#64748b] mb-3 leading-relaxed">
+                  <p className="text-[var(--tg-dim)] mb-3 leading-relaxed">
                     {project.shortDescription}
                   </p>
                   {project.technicalSkills && project.technicalSkills.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
+                    <div className="flex flex-wrap gap-1.5 mb-3">
                       {project.technicalSkills.map((skill: string, skillIndex: number) => (
                         <span
                           key={skillIndex}
-                          className="inline-block px-2 py-1 rounded text-xs font-normal bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                          className="tg-chip tg-mono inline-block px-2 py-1 rounded-md text-xs"
                         >
-                          {skill.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          {humanize(skill)}
                         </span>
                       ))}
                     </div>
                   )}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-[#64748b]">
+                  <div className="tg-mono flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--tg-dim)]">
                     {project.institution && (
-                      <span className="text-[#475569] font-medium">
-                        {project.institution}
-                      </span>
+                      <span className="text-[var(--tg-teal)]">{project.institution}</span>
                     )}
                     {project.publication && (
-                      <span className="text-[#475569] font-medium">
-                        {project.publication}
-                      </span>
+                      <span className="text-[var(--tg-teal)]">{project.publication}</span>
                     )}
                     {project.courseCode && (
-                      <span className="text-[#475569] font-medium">
-                        {project.courseCode}
-                      </span>
+                      <span className="text-[var(--tg-teal)]">{project.courseCode}</span>
                     )}
                     {project.role && (
-                      <span className="text-[#475569] font-medium">
-                        {project.role}
-                      </span>
+                      <span className="text-[var(--tg-teal)]">{project.role}</span>
                     )}
                     {project.organization && (
-                      <span className="text-[#475569] font-medium">
-                        {project.organization}
-                      </span>
+                      <span className="text-[var(--tg-teal)]">{project.organization}</span>
                     )}
-                    {project.year && (
-                      <span>{project.year}</span>
-                    )}
+                    {project.year && <span>{project.year}</span>}
                   </div>
                 </div>
               </article>

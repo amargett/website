@@ -14,6 +14,18 @@
   --gradient-start: #f97316; /* Orange */
   --gradient-mid: #e0f2fe;   /* Light Blue */
   --gradient-end: #0a4a5a;   /* Bluer Teal/Blue-Green */
+
+  /* Terminal Garden palette (site-wide) */
+  --tg-bg: #161210;
+  --tg-bg-2: #1d1610;
+  --tg-panel: rgba(34, 26, 20, 0.72);
+  --tg-border: #3a2d22;
+  --tg-fg: #ece0cb;
+  --tg-dim: #9c8974;
+  --tg-green: #96b85f;
+  --tg-amber: #e2983f;
+  --tg-teal: #57a99b;
+  --tg-orange: #cf6a34;
 }
 
 @theme inline {
@@ -52,7 +64,7 @@
 
 /* Header typography */
 .header-text {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 300;
   letter-spacing: -0.02em;
 }
@@ -126,9 +138,28 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  color: var(--tg-fg);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(1100px 620px at 82% -8%, rgba(207, 106, 52, 0.10), transparent 62%),
+    radial-gradient(950px 560px at -5% 108%, rgba(150, 184, 95, 0.10), transparent 60%),
+    var(--tg-bg);
+  background-attachment: fixed;
+}
+
+/* Faint plotter-bed / CAD grid, site-wide */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(236, 224, 203, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236, 224, 203, 0.03) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at 50% 30%, black, transparent 90%);
 }
 
 @keyframes fadeIn {
@@ -288,6 +319,197 @@ body {
     transform: rotate(45deg) translateY(-10px);
     opacity: 0.8;
   }
+}
+
+/* ============================================================
+   Terminal Garden — landing page theme
+   Dark, warm, monospace. Greens & ambers on deep brown-black,
+   with circuit-vine traces growing across the screen.
+   ============================================================ */
+/* Landing wrapper: monospace, terminal-forward */
+.terminal-garden {
+  min-height: 100vh;
+  position: relative;
+  font-family: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Monospace helper for terminal-style labels on otherwise sans pages */
+.tg-mono {
+  font-family: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tg-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Terminal window */
+.tg-window {
+  background: var(--tg-panel);
+  border: 1px solid var(--tg-border);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 24px 60px -20px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(236, 224, 203, 0.04);
+  overflow: hidden;
+}
+
+.tg-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--tg-border);
+  background: linear-gradient(180deg, rgba(236, 224, 203, 0.045), transparent);
+}
+
+.tg-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Blinking terminal cursor */
+.tg-cursor {
+  display: inline-block;
+  width: 0.62em;
+  height: 1.05em;
+  transform: translateY(0.16em);
+  background: var(--tg-green);
+  margin-left: 2px;
+  animation: tg-blink 1.05s steps(1) infinite;
+}
+
+@keyframes tg-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Circuit-vine traces that grow in behind the terminal */
+.tg-traces {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.tg-trace {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len, 1200);
+  stroke-dashoffset: var(--len, 1200);
+  animation: tg-grow 2.6s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes tg-grow {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Nodes / seeds that pulse where traces branch */
+.tg-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: tg-node-in 0.5s ease-out forwards, tg-node-pulse 4s ease-in-out infinite;
+  animation-delay: var(--delay, 0s), calc(var(--delay, 0s) + 0.5s);
+}
+
+@keyframes tg-node-in {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes tg-node-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* Terminal project cards */
+.tg-card {
+  position: relative;
+  background: var(--tg-panel);
+  border: 1px solid var(--tg-border);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+}
+
+.tg-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(150, 184, 95, 0.55);
+  box-shadow:
+    0 20px 40px -18px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(150, 184, 95, 0.15);
+}
+
+.tg-chip {
+  border: 1px solid var(--tg-border);
+  color: var(--tg-dim);
+  background: rgba(236, 224, 203, 0.03);
+}
+
+/* Terminal-style filter/pill buttons */
+.tg-btn {
+  font-family: var(--font-roboto-mono), ui-monospace, monospace;
+  border: 1px solid var(--tg-border);
+  color: var(--tg-dim);
+  background: rgba(236, 224, 203, 0.03);
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.tg-btn:hover {
+  color: var(--tg-fg);
+  border-color: rgba(150, 184, 95, 0.5);
+}
+
+.tg-btn-active {
+  color: var(--tg-bg);
+  background: var(--tg-green);
+  border-color: var(--tg-green);
+  font-weight: 600;
+}
+
+/* Long-form copy on dark: links + emphasis inside PortableText */
+.tg-prose {
+  color: var(--tg-fg);
+  line-height: 1.75;
+}
+.tg-prose a {
+  color: var(--tg-green);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tg-prose a:hover { color: var(--tg-amber); }
+.tg-prose h1, .tg-prose h2, .tg-prose h3 {
+  color: var(--tg-fg);
+  font-weight: 600;
+  margin: 1.6em 0 0.6em;
+}
+.tg-prose h2 { font-size: 1.4rem; }
+.tg-prose h3 { font-size: 1.15rem; }
+.tg-prose p { margin: 0 0 1em; }
+.tg-prose strong { color: var(--tg-amber); }
+.tg-prose ul, .tg-prose ol { margin: 0 0 1em 1.25em; }
+.tg-prose li { margin: 0.3em 0; }
+.tg-prose blockquote {
+  border-left: 2px solid var(--tg-green);
+  padding-left: 1rem;
+  color: var(--tg-dim);
+  font-style: italic;
+  margin: 1em 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tg-trace { animation: none; stroke-dashoffset: 0; }
+  .tg-node { animation: none; opacity: 0.7; }
+  .tg-cursor { animation: none; }
 }
 
 /* Leafy header background */

@@ -27,26 +27,24 @@ export default async function ProjectsPage() {
   } catch (err) {
     console.error("Sanity fetch failed:", err);
     return (
-      <div className="full-page-gradient">
-        <main className="relative z-20 pb-16 bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
-          <div className="max-w-4xl mx-auto px-4 pt-6">
-            <div className="text-center text-white">
-              <p>Content is currently being loaded...</p>
-              <p className="text-sm mt-2">If this persists, please check the Sanity configuration.</p>
-            </div>
-          </div>
-        </main>
-      </div>
+      <main className="tg-mono max-w-4xl mx-auto px-4 py-16 relative z-10">
+        <p className="text-[var(--tg-amber)]">$ ls ~/projects</p>
+        <p className="text-[var(--tg-dim)] text-sm mt-2">// content is loading… if this persists, check the Sanity configuration.</p>
+      </main>
     );
   }
 
   return (
-    <div className="full-page-gradient">
-      <main className="relative z-20 pb-16 bg-gradient-to-bl from-[#f97316] via-[#e0f2fe] via-30% to-[#0a4a5a] shadow-2xl">
-        <div className="max-w-4xl mx-auto px-4 pt-6">
-          <ProjectsList projects={projects} />
-        </div>
-      </main>
-    </div>
+    <main className="relative z-10 max-w-5xl mx-auto px-4 py-10 sm:py-14">
+      <div className="flex items-baseline gap-3 mb-8 border-b border-[var(--tg-border)] pb-4">
+        <h1 className="tg-mono text-lg sm:text-xl text-[var(--tg-fg)]">
+          <span className="text-[var(--tg-green)]">$</span> ls ~/projects
+        </h1>
+        <span className="tg-mono text-[var(--tg-dim)] text-xs sm:text-sm">
+          {projects.length} {projects.length === 1 ? "entry" : "entries"}
+        </span>
+      </div>
+      <ProjectsList projects={projects} />
+    </main>
   );
 } 
