@@ -42,7 +42,7 @@ const ProjectImage = ({ value }: { value: any }) => {
           alt={value.alt}
           width={800}
           height={600}
-          className={`w-full rounded-lg shadow-lg ${objectFitClasses[value.objectFit as keyof typeof objectFitClasses] || objectFitClasses.cover}`}
+          className={`w-full rounded-lg shadow-lg bg-white ${objectFitClasses[value.objectFit as keyof typeof objectFitClasses] || objectFitClasses.cover}`}
         />
       </div>
       {value.caption && (
@@ -265,7 +265,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                   alt={project.mainMedia.alt}
                   width={1200}
                   height={800}
-                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-lg"
+                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-lg bg-white"
                 />
               );
             } else if (project.mainMedia.type === 'video' && videoUrl) {

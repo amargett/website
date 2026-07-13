@@ -26,6 +26,7 @@
   --tg-amber: #e2983f;
   --tg-teal: #57a99b;
   --tg-orange: #cf6a34;
+  --tg-spark: #d9f2a3;
 }
 
 @theme inline {
@@ -143,7 +144,6 @@ body {
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
   background:
     radial-gradient(1100px 620px at 82% -8%, rgba(207, 106, 52, 0.10), transparent 62%),
-    radial-gradient(950px 560px at -5% 108%, rgba(150, 184, 95, 0.10), transparent 60%),
     var(--tg-bg);
   background-attachment: fixed;
 }
@@ -387,38 +387,48 @@ body::before {
   51%, 100% { opacity: 0; }
 }
 
-/* Circuit-vine traces that grow in behind the terminal */
-.tg-traces {
+/* Full-page circuit-root system — a base at the top whose roots grow down the
+   page as you scroll. Sits behind all home-page content. */
+.tg-roots {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
-  overflow: visible;
+  overflow: hidden;
 }
+.tg-roots-branches { opacity: 0.62; }
+.tg-roots-fine { opacity: 0.4; }
+.tg-roots-nodes { opacity: 0.85; }
+.tg-roots-pads { opacity: 0.7; }
 
-.tg-trace {
+/* Soft foliage body of the canopy — fades in once at load. */
+.tg-roots-canopy { animation: tg-canopy-in 1.3s ease-out 0.35s both; }
+@keyframes tg-canopy-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Roots stay hidden until the scroll front reaches them, then draw in once. */
+.tg-root {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: var(--len, 1200);
-  stroke-dashoffset: var(--len, 1200);
-  animation: tg-grow 2.6s ease-out forwards;
-  animation-delay: var(--delay, 0s);
+  stroke-dasharray: var(--len, 600);
+  stroke-dashoffset: var(--len, 600);
 }
+.tg-root.grown { animation: tg-grow 1.3s ease-out forwards; }
 
 @keyframes tg-grow {
   to { stroke-dashoffset: 0; }
 }
 
-/* Nodes / seeds that pulse where traces branch */
-.tg-node {
+/* Via-ring "leaves" bloom + pulse once their branch has grown. */
+.tg-rnode {
   transform-box: fill-box;
   transform-origin: center;
   opacity: 0;
-  animation: tg-node-in 0.5s ease-out forwards, tg-node-pulse 4s ease-in-out infinite;
-  animation-delay: var(--delay, 0s), calc(var(--delay, 0s) + 0.5s);
+}
+.tg-rnode.grown {
+  animation: tg-node-in 0.5s ease-out forwards, tg-node-pulse 4.2s ease-in-out 0.5s infinite;
 }
 
 @keyframes tg-node-in {
@@ -429,6 +439,61 @@ body::before {
 @keyframes tg-node-pulse {
   0%, 100% { opacity: 0.55; }
   50% { opacity: 1; }
+}
+
+/* Accent leaves get a soft glow (color set inline per node) */
+.tg-node-accent { filter: drop-shadow(0 0 5px currentColor); }
+
+/* Dense foliage leaves: scale in once, no continuous pulse (there are many). */
+.tg-rleaf {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  transform: rotate(var(--rot, 0deg)) scale(0);
+}
+.tg-rleaf.grown {
+  animation:
+    tg-leaf-in 0.5s ease-out forwards,
+    tg-leaf-drift var(--ddur, 6s) ease-in-out var(--ddel, 1s) infinite;
+}
+
+@keyframes tg-leaf-in {
+  from { opacity: 0; transform: rotate(var(--rot, 0deg)) scale(0); }
+  to { opacity: 1; transform: rotate(var(--rot, 0deg)) scale(1); }
+}
+
+/* gentle flutter, as if drifting on a breeze */
+@keyframes tg-leaf-drift {
+  0% { transform: rotate(var(--rot, 0deg)) translate(calc(var(--dsway, 4px) * -1), 0); }
+  50% { transform: rotate(calc(var(--rot, 0deg) + 12deg)) translate(var(--dsway, 4px), calc(var(--dsway, 4px) * 0.7)); }
+  100% { transform: rotate(var(--rot, 0deg)) translate(calc(var(--dsway, 4px) * -1), 0); }
+}
+
+/* Junction pads fade in with their branch. */
+.tg-rpad { opacity: 0; }
+.tg-rpad.grown { animation: tg-pad-in 0.5s ease-out forwards; }
+
+@keyframes tg-pad-in {
+  to { opacity: 1; }
+}
+
+/* Charge: a single comet of length --c travels the WHOLE path (length --len),
+   from its top point all the way down, then repeats. The dash offset sweeps
+   from -c (comet just above the top) to len (comet just past the bottom). */
+.tg-spark {
+  fill: none;
+  stroke: var(--tg-spark);
+  stroke-linecap: round;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px rgba(217, 242, 163, 0.75));
+  animation: tg-flow var(--fdur, 3.4s) linear var(--fd, 0s) infinite;
+}
+
+@keyframes tg-flow {
+  0% { stroke-dashoffset: calc(var(--c, 60) * -1); opacity: 0; }
+  8% { opacity: 0.95; }
+  85% { opacity: 0.95; }
+  100% { stroke-dashoffset: var(--len); opacity: 0; }
 }
 
 /* Terminal project cards */
@@ -507,10 +572,158 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tg-trace { animation: none; stroke-dashoffset: 0; }
-  .tg-node { animation: none; opacity: 0.7; }
+  .tg-root { animation: none; stroke-dashoffset: 0; }
+  .tg-rnode { animation: none; opacity: 0.7; }
+  .tg-rleaf { animation: none; opacity: 1; transform: rotate(var(--rot, 0deg)) scale(1); }
+  .tg-roots-canopy { animation: none; }
+  .tg-rpad { animation: none; opacity: 0.7; }
+  .tg-spark { display: none; }
   .tg-cursor { animation: none; }
+  .tg-pop { animation: none; }
+  .tg-orchard-stem { animation: none; stroke-dashoffset: 0; }
+  .tg-orchard-tip { animation: none; opacity: 0.75; }
+  .tg-sprout { animation: none; opacity: 1; transform: none; }
 }
+
+/* ============================================================
+   Featured "orchard": project pills hanging on the tree; hover
+   a pill to float out the full card beside it.
+   ============================================================ */
+.tg-orchard { position: relative; width: 100%; z-index: 2; }
+
+.tg-orchard-stems { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.tg-orchard-stem {
+  fill: none;
+  stroke: var(--tg-green);
+  stroke-width: 1.4;
+  opacity: 0.4;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: tg-stem-draw 0.55s ease-out var(--sd, 1.3s) forwards;
+}
+@keyframes tg-stem-draw { to { stroke-dashoffset: 0; } }
+.tg-orchard-tip {
+  fill: var(--tg-green);
+  opacity: 0;
+  animation: tg-tip-in 0.3s ease-out var(--sd, 1.5s) forwards;
+}
+@keyframes tg-tip-in { to { opacity: 0.75; } }
+
+/* pills hang from the branch tip and sprout in once the stem has drawn */
+.tg-orchard-node { position: absolute; transform: translate(-50%, 0); z-index: 3; }
+.tg-orchard-node.is-active { z-index: 40; }
+.tg-sprout {
+  display: inline-block;
+  opacity: 0;
+  transform: scale(0.35) translateY(-10px);
+  transform-origin: top center;
+  animation: tg-sprout 0.5s cubic-bezier(.2, .8, .25, 1) var(--pd, 1.75s) forwards;
+}
+@keyframes tg-sprout {
+  0% { opacity: 0; transform: scale(0.35) translateY(-10px); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.tg-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--font-roboto-mono), ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--tg-fg);
+  background: var(--tg-panel);
+  border: 1px solid var(--tg-border);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 22px -12px rgba(0, 0, 0, 0.7);
+  transition: color .18s, background .18s, border-color .18s, transform .18s, box-shadow .18s;
+}
+.tg-pill:hover,
+.tg-orchard-node.is-active .tg-pill {
+  color: var(--tg-bg);
+  background: var(--tg-green);
+  border-color: var(--tg-green);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.8), 0 0 0 3px rgba(150, 184, 95, 0.18);
+}
+.tg-pill-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto;
+  background: var(--tg-amber);
+  box-shadow: 0 0 6px rgba(226, 152, 63, 0.8);
+}
+.tg-pill:hover .tg-pill-dot,
+.tg-orchard-node.is-active .tg-pill-dot { background: var(--tg-bg); box-shadow: none; }
+.tg-pill-label { max-width: 148px; overflow: hidden; text-overflow: ellipsis; }
+.tg-pill:focus-visible { outline: 2px solid var(--tg-amber); outline-offset: 2px; }
+
+/* small fruit-card hanging at a branch tip (like the example) */
+.tg-fruit-card {
+  display: block;
+  position: relative;
+  width: 162px;
+  padding: 10px 13px 11px;
+  border-radius: 11px;
+  background: var(--tg-panel);
+  border: 1px solid var(--tg-border);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.75);
+  transition: border-color .18s, transform .18s, box-shadow .18s;
+}
+.tg-fruit-card::before {
+  content: "";
+  position: absolute; top: -3px; left: 50%; transform: translateX(-50%);
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--tg-green); box-shadow: 0 0 6px rgba(150, 184, 95, 0.7);
+}
+.tg-fruit-bar { display: block; width: 44%; height: 4px; border-radius: 2px; background: var(--tg-green); }
+.tg-fruit-name {
+  display: block; margin: 8px 0 0; font-size: 12px; line-height: 1.3;
+  color: var(--tg-fg); font-family: var(--font-roboto-mono), ui-monospace, monospace;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tg-fruit-line { display: block; width: 66%; height: 2.4px; border-radius: 1.2px; background: var(--tg-dim); opacity: .5; margin-top: 7px; }
+.tg-fruit-card:hover,
+.tg-orchard-node.is-active .tg-fruit-card {
+  border-color: rgba(150, 184, 95, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -14px rgba(0, 0, 0, 0.85), 0 0 0 3px rgba(150, 184, 95, 0.14);
+}
+.tg-fruit-card:focus-visible { outline: 2px solid var(--tg-amber); outline-offset: 2px; }
+
+/* full-card popover */
+.tg-pop { position: absolute; top: 50%; width: 300px; z-index: 40; animation: tg-pop-in .16s ease-out; }
+.tg-pop-right { left: 100%; margin-left: 14px; transform: translateY(-50%); }
+.tg-pop-left  { right: 100%; margin-right: 14px; transform: translateY(-50%); }
+/* transparent hover-bridge across the gap so moving pill -> card doesn't drop */
+.tg-pop::before { content: ""; position: absolute; top: 0; bottom: 0; width: 18px; }
+.tg-pop-right::before { right: 100%; }
+.tg-pop-left::before  { left: 100%; }
+@keyframes tg-pop-in {
+  from { opacity: 0; transform: translateY(-50%) scale(.97); }
+  to   { opacity: 1; }
+}
+.tg-pop-inner { padding: 12px; }
+.tg-pop-head { font-size: 11px; color: var(--tg-dim); margin-bottom: 8px; }
+.tg-pop-media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--tg-border);
+  background: rgba(236, 224, 203, 0.02);
+  margin-bottom: 9px;
+}
+.tg-pop-title { font-size: 14px; font-weight: 600; color: var(--tg-fg); margin: 0 0 5px; }
+.tg-pop-desc {
+  font-size: 12px; line-height: 1.5; color: var(--tg-dim); margin: 0 0 9px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.tg-pop-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tg-pop-open { display: block; margin-top: 9px; font-size: 11px; color: var(--tg-green); }
 
 /* Leafy header background */
 .leafy-header {

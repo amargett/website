@@ -37,8 +37,8 @@ export default async function ProjectsPage() {
   return (
     <main className="relative z-10 max-w-5xl mx-auto px-4 py-10 sm:py-14">
       <div className="flex items-baseline gap-3 mb-8 border-b border-[var(--tg-border)] pb-4">
-        <h1 className="tg-mono text-lg sm:text-xl text-[var(--tg-fg)]">
-          <span className="text-[var(--tg-green)]">$</span> ls ~/projects
+        <h1 className="tg-mono text-xl sm:text-2xl font-bold text-[var(--tg-fg)]">
+          <span className="text-[var(--tg-green)]">~#</span> ls ~/projects
         </h1>
         <span className="tg-mono text-[var(--tg-dim)] text-xs sm:text-sm">
           {projects.length} {projects.length === 1 ? "entry" : "entries"}

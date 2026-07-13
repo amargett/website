@@ -3,6 +3,7 @@ import Link from "next/link";
 import TerminalHero from "../components/TerminalHero";
 import CircuitVines from "../components/CircuitVines";
 import FeaturedMasonry from "../components/FeaturedMasonry";
+import FeaturedOrchard from "../components/FeaturedOrchard";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +26,10 @@ const featuredProjectsQuery = `*[_type == "project" && featured == true]|order(f
 
 function HeroSection() {
   return (
-    <header className="relative overflow-hidden px-4 sm:px-6 pt-8 pb-10 sm:pt-12 sm:pb-14">
-      <CircuitVines />
+    <header className="relative overflow-hidden px-4 sm:px-6 pt-8 pb-10 sm:pt-12 sm:pb-14 min-h-[60vh] sm:min-h-[66vh]">
       <div className="tg-content max-w-5xl mx-auto">
-        <p className="text-[var(--tg-dim)] text-xs sm:text-sm mb-6 tracking-wide">
-          <span className="text-[var(--tg-green)]">*</span> booting portfolio…
-        </p>
         <TerminalHero />
-        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+        <div className="mt-8 flex flex-col items-start gap-2 text-sm">
           <Link
             href="/projects"
             className="text-[var(--tg-green)] hover:text-[var(--tg-amber)] transition-colors"
@@ -54,22 +51,32 @@ function HeroSection() {
 function FeaturedGrid({ projects }: { projects: any[] }) {
   return (
     <main className="tg-content relative px-4 sm:px-6 pb-28">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="flex items-baseline gap-3 mb-8 border-b border-[var(--tg-border)] pb-4">
-          <h2 className="text-[var(--tg-fg)] text-lg sm:text-xl">
-            featured work
+          <h2 className="text-[var(--tg-fg)] text-base sm:text-lg font-semibold">
+            <span className="text-[var(--tg-green)]">❯</span> featured work
           </h2>
           <span className="text-[var(--tg-dim)] text-xs sm:text-sm">
             {projects.length} {projects.length === 1 ? "project" : "projects"}
           </span>
         </div>
 
-        {projects.length === 0 ? (
-          <p className="text-[var(--tg-dim)] text-sm">// no featured projects yet.</p>
-        ) : (
-          <FeaturedMasonry projects={projects} />
-        )}
       </div>
+
+      {projects.length === 0 ? (
+        <p className="max-w-6xl mx-auto text-[var(--tg-dim)] text-sm">// no featured projects yet.</p>
+      ) : (
+        <>
+          {/* desktop: fruit-cards hang on the tree — full width so they meet the canopy */}
+          <div className="hidden lg:block">
+            <FeaturedOrchard projects={projects} />
+          </div>
+          {/* touch / small screens: the tidy grid (no hover there) */}
+          <div className="lg:hidden max-w-6xl mx-auto">
+            <FeaturedMasonry projects={projects} />
+          </div>
+        </>
+      )}
     </main>
   );
 }
@@ -87,6 +94,7 @@ export default async function Home() {
 
   return (
     <div className="terminal-garden">
+      <CircuitVines />
       <HeroSection />
       {fetchFailed ? (
         <main className="tg-content px-4 sm:px-6 pb-28 max-w-6xl mx-auto">
@@ -98,6 +106,8 @@ export default async function Home() {
       ) : (
         <FeaturedGrid projects={featuredProjects} />
       )}
+      {/* open ground at the foot of the page where the last leaves settle */}
+      <div aria-hidden className="h-[42vh]" />
     </div>
   );
 }

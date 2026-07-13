@@ -11,7 +11,7 @@ import { projectId, dataset } from "../sanity/env";
 // `grid-row-end: span N` is set from its measured height so cards pack by
 // height with no fixed rows. `wide` projects also span two columns.
 const ROW = 8; // px — base auto-row unit
-const GAP = 18; // px — vertical gap folded into each card's span
+const GAP = 48; // px — vertical gap folded into each card's span (roomy so the tree shows between cards)
 
 const humanize = (s: string) =>
   s.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
@@ -80,60 +80,57 @@ export default function FeaturedMasonry({ projects }: { projects: any[] }) {
   return (
     <div
       ref={ref}
-      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 lg:gap-x-5"
+      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 sm:gap-x-8 lg:gap-x-12"
       style={{ gridAutoRows: `${ROW}px` }}
     >
       {projects.map((project: any, index: number) => {
-        const wide = project.featuredLayout === "wide";
         const { imageUrl, videoUrl } = mediaUrls(project);
         return (
           <div
             key={project._id}
-            className={wide ? "sm:col-span-2" : ""}
             // Placeholder span before measurement, to avoid a collapsed flash.
-            style={{ gridRowEnd: "span 45" }}
+            style={{ gridRowEnd: "span 30" }}
           >
             <Link
               href={`/projects/${project.slug.current}`}
-              className="tg-card group flex flex-col p-3 sm:p-4"
+              className="tg-card group flex flex-col p-2.5 sm:p-3"
             >
               {/* file-path style header */}
-              <div className="flex items-center gap-2 mb-2.5 text-xs text-[var(--tg-dim)]">
+              <div className="flex items-center gap-1.5 mb-2 text-[11px] text-[var(--tg-dim)]">
                 <span className="text-[var(--tg-green)]">›</span>
                 <span className="truncate">~/featured/{project.slug.current}</span>
               </div>
 
-              {/* media keeps its natural aspect ratio — no cropping */}
-              <div className="mb-2.5">
+              {/* uniform media box so every card is the same size */}
+              <div className="mb-2 relative aspect-[4/3] overflow-hidden rounded-lg border border-[var(--tg-border)] bg-white">
                 {imageUrl ? (
                   <Image
                     src={imageUrl}
                     alt={project.mainMedia.alt || project.title}
-                    width={600}
-                    height={400}
-                    className="w-full h-auto rounded-lg border border-[var(--tg-border)]"
+                    fill
+                    sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 18vw"
+                    className="object-cover"
                     priority={index === 0}
                   />
                 ) : videoUrl ? (
-                  <HoverVideo
-                    src={videoUrl}
-                    className="w-full h-auto rounded-lg border border-[var(--tg-border)]"
-                  />
+                  <div className="absolute inset-0">
+                    <HoverVideo src={videoUrl} className="w-full h-full" />
+                  </div>
                 ) : (
-                  <div className="w-full h-40 rounded-lg border border-[var(--tg-border)] flex items-center justify-center bg-[rgba(236,224,203,0.02)]">
-                    <span className="text-[var(--tg-dim)] text-xs">// no media</span>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[var(--tg-dim)] text-[11px]">// no media</span>
                   </div>
                 )}
               </div>
 
               <div className="flex-shrink-0">
-                <h3 className="text-sm sm:text-base font-semibold mb-1.5 text-[var(--tg-fg)] group-hover:text-[var(--tg-green)] transition-colors">
+                <h3 className="text-xs sm:text-sm font-semibold mb-1 text-[var(--tg-fg)] group-hover:text-[var(--tg-green)] transition-colors leading-snug">
                   {project.title}
                 </h3>
-                <p className="text-[var(--tg-dim)] mb-2.5 text-xs sm:text-sm leading-relaxed">
+                <p className="text-[var(--tg-dim)] mb-2 text-[11px] leading-relaxed line-clamp-3">
                   {project.shortDescription}
                 </p>
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-1">
                   {project.category && (
                     <span className="px-2 py-0.5 rounded-md text-xs font-medium border border-[var(--tg-amber)]/50 text-[var(--tg-amber)]">
                       {humanize(project.category)}

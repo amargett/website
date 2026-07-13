@@ -122,7 +122,7 @@ export default function ProjectsList({ projects }: ProjectsListProps) {
                       alt={project.mainMedia.alt}
                       width={400}
                       height={200}
-                      className="w-full h-full object-cover rounded-lg border border-[var(--tg-border)]"
+                      className="w-full h-full object-cover rounded-lg border border-[var(--tg-border)] bg-white"
                     />
                   ) : videoUrl ? (
                     <HoverVideo

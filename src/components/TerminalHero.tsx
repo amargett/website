@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const PROMPT = "root@ashley-margetts:~#";
-
 // The boot sequence. Commands type out char-by-char; output prints once the
 // command finishes. `accent` colors the output line.
 type Line = { cmd: string; out: React.ReactNode; accent?: string };
@@ -23,7 +21,7 @@ const LINES: Line[] = [
     out: (
       <span className="text-[var(--tg-green)]">
         mechanical-design/{"  "}mechatronics/{"  "}robotic-systems/{"  "}
-        <span className="text-[var(--tg-teal)]">making/</span>
+        <span className="text-[var(--tg-amber)]">making/</span>
       </span>
     ),
   },
@@ -107,7 +105,12 @@ export default function TerminalHero() {
 
   const renderPromptLine = (cmd: string, cursor: boolean) => (
     <div className="flex flex-wrap items-start gap-x-2 leading-relaxed">
-      <span className="text-[var(--tg-green)] shrink-0 select-none">{PROMPT}</span>
+      <span className="shrink-0 select-none">
+        <span className="text-[var(--tg-amber)]">root@ashley-margetts</span>
+        <span className="text-[var(--tg-dim)]">:</span>
+        <span className="text-[var(--tg-green)]">~</span>
+        <span className="text-[var(--tg-dim)]">#</span>
+      </span>
       <span className="text-[var(--tg-fg)] break-words">
         {cmd}
         {cursor && <span className="tg-cursor" aria-hidden="true" />}
@@ -123,19 +126,19 @@ export default function TerminalHero() {
   );
 
   return (
-    <div className="tg-window max-w-3xl">
+    <div className="tg-window max-w-2xl">
       {/* window chrome */}
       <div className="tg-titlebar">
         <span className="tg-dot" style={{ background: "#cf6a34" }} />
         <span className="tg-dot" style={{ background: "#e2983f" }} />
         <span className="tg-dot" style={{ background: "#96b85f" }} />
-        <span className="ml-2 text-xs sm:text-sm text-[var(--tg-dim)] tracking-wide">
+        <span className="ml-2 text-xs text-[var(--tg-dim)] tracking-wide">
           ashley-margetts — bash
         </span>
       </div>
 
       {/* terminal body */}
-      <div className="p-5 sm:p-7 text-sm sm:text-base">
+      <div className="p-4 sm:p-5 text-[13px] sm:text-sm">
         <div className="relative">
           {/* Sizer: renders the finished state invisibly to reserve exactly the
               content's final height at the current width. Keeps the box from

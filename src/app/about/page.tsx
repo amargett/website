@@ -48,7 +48,7 @@ export default async function AboutPage() {
   return (
     <main className="relative z-10 max-w-5xl mx-auto px-4 py-10 sm:py-14">
       <p className="tg-mono text-[var(--tg-amber)] mb-5 text-sm sm:text-base">
-        <span className="text-[var(--tg-dim)]">$</span> cat ~/about.md
+        <span className="text-[var(--tg-green)]">~#</span> cat ~/about.md
       </p>
 
       <div className="tg-window">
@@ -60,8 +60,8 @@ export default async function AboutPage() {
         </div>
 
         <div className="p-6 sm:p-9">
-          <h1 className="tg-mono text-2xl sm:text-3xl font-bold mb-6 text-[var(--tg-fg)]">
-            <span className="text-[var(--tg-green)]"># </span>{aboutData.title}
+          <h1 className="tg-mono text-xl sm:text-2xl font-bold mb-6 text-[var(--tg-fg)]">
+            {aboutData.title}
           </h1>
 
           <div className="flex flex-col lg:flex-row gap-8 mb-10 items-start lg:items-center">
