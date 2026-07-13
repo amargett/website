@@ -26,7 +26,6 @@
   --tg-amber: #e2983f;
   --tg-teal: #57a99b;
   --tg-orange: #cf6a34;
-  --tg-spark: #d9f2a3;
 }
 
 @theme inline {
@@ -427,8 +426,9 @@ body::before {
   transform-origin: center;
   opacity: 0;
 }
+/* Via rings stay calm; the relay current is carried by the lit cores below. */
 .tg-rnode.grown {
-  animation: tg-node-in 0.5s ease-out forwards, tg-node-pulse 4.2s ease-in-out 0.5s infinite;
+  animation: tg-node-in 0.5s ease-out forwards;
 }
 
 @keyframes tg-node-in {
@@ -436,9 +436,22 @@ body::before {
   to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes tg-node-pulse {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
+/* Relay: a lit core hops node-to-node down the roots once each via has grown. */
+.tg-via-core {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tg-rnode.grown .tg-via-core {
+  animation: tg-hop 2.1s ease-out infinite;
+  animation-delay: var(--phase, 0s);
+}
+
+@keyframes tg-hop {
+  0% { opacity: 0; transform: scale(0.7); }
+  7% { opacity: 0.95; transform: scale(1); }
+  26% { opacity: 0; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
 }
 
 /* Accent leaves get a soft glow (color set inline per node) */
@@ -475,25 +488,6 @@ body::before {
 
 @keyframes tg-pad-in {
   to { opacity: 1; }
-}
-
-/* Charge: a single comet of length --c travels the WHOLE path (length --len),
-   from its top point all the way down, then repeats. The dash offset sweeps
-   from -c (comet just above the top) to len (comet just past the bottom). */
-.tg-spark {
-  fill: none;
-  stroke: var(--tg-spark);
-  stroke-linecap: round;
-  opacity: 0;
-  filter: drop-shadow(0 0 4px rgba(217, 242, 163, 0.75));
-  animation: tg-flow var(--fdur, 3.4s) linear var(--fd, 0s) infinite;
-}
-
-@keyframes tg-flow {
-  0% { stroke-dashoffset: calc(var(--c, 60) * -1); opacity: 0; }
-  8% { opacity: 0.95; }
-  85% { opacity: 0.95; }
-  100% { stroke-dashoffset: var(--len); opacity: 0; }
 }
 
 /* Terminal project cards */
@@ -577,7 +571,7 @@ body::before {
   .tg-rleaf { animation: none; opacity: 1; transform: rotate(var(--rot, 0deg)) scale(1); }
   .tg-roots-canopy { animation: none; }
   .tg-rpad { animation: none; opacity: 0.7; }
-  .tg-spark { display: none; }
+  .tg-via-core { animation: none; opacity: 0; }
   .tg-cursor { animation: none; }
   .tg-pop { animation: none; }
   .tg-orchard-stem { animation: none; stroke-dashoffset: 0; }

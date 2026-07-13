@@ -25,8 +25,8 @@ const featuredProjectsQuery = `*[_type == "project" && featured == true]|order(f
 
 function HeroSection() {
   return (
-    <header className="relative overflow-hidden px-4 sm:px-6 pt-8 pb-10 sm:pt-12 sm:pb-14 min-h-[60vh] sm:min-h-[66vh]">
-      <div className="tg-content max-w-5xl mx-auto">
+    <header className="relative overflow-hidden px-4 sm:px-6 py-12 sm:py-16 min-h-[60vh] sm:min-h-[66vh] flex flex-col justify-center">
+      <div className="tg-content max-w-5xl mx-auto w-full">
         <TerminalHero />
         <div className="mt-8 flex flex-col items-start gap-2 text-sm">
           <Link

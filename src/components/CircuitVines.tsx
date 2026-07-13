@@ -63,10 +63,9 @@ type Path = { d: string; w: number; ry: number; len: number; kind: "root" | "ten
 type Pad = { cx: number; cy: number; ry: number; size: number };
 type CompStyle = "via" | "junction";
 type Leaf = { cx: number; cy: number; ry: number; style: "blade" | CompStyle; col: string; s: number; rot: number; accent: boolean; sway: number; dur: number; del: number };
-type Spark = { d: string; c: number; len: number; w: number; dur: string; delay: string };
 type Blob = { cx: number; cy: number; rx: number; ry: number; op: number };
 type Anchor = { x: number; y: number };
-type Scene = { paths: Path[]; pads: Pad[]; leaves: Leaf[]; sparks: Spark[]; blobs: Blob[]; copperEnd: number; greenStart: number; fruitAnchors: Anchor[] };
+type Scene = { paths: Path[]; pads: Pad[]; leaves: Leaf[]; blobs: Blob[]; copperEnd: number; greenStart: number; fruitAnchors: Anchor[] };
 
 // stepped PCB-ish segment (used for the trunk)
 function pcbSeg(x1: number, y1: number, x2: number, y2: number, style: "orthogonal" | "diagonal45") {
@@ -94,12 +93,10 @@ function curveSeg(x1: number, y1: number, x2: number, y2: number, off: number) {
 function generate(W: number, H: number, rootEnd: number, fruitCount: number): Scene {
   const rnd = mulberry32(M.seed);
   const cx = W / 2;
-  const out: Scene = { paths: [], pads: [], leaves: [], sparks: [], blobs: [], copperEnd: 0, greenStart: 0, fruitAnchors: [] };
+  const out: Scene = { paths: [], pads: [], leaves: [], blobs: [], copperEnd: 0, greenStart: 0, fruitAnchors: [] };
   const tips: Anchor[] = [];
   const topMargin = 12;
   const edge = Math.max(4, W * 0.008);
-  const fill = M.rootFill;
-  const curvy = 0.55 + M.metamorphOrganic * 0.5;
   const jit = (a: number) => (rnd() - 0.5) * a;
 
   // copper -> green resolves quickly: copper through the first ~40% of the
@@ -142,101 +139,138 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
       accent: false, sway: 0, dur: 0, del: 0,
     });
 
-  // ---- loose, mossy tendril that sprouts off a main root ----
-  const tbudget = { n: 0 };
-  function tendril(x0: number, y0: number, ang: number, len: number, w: number, depth: number) {
-    if (tbudget.n++ > 900) return;
-    const steps = 3 + Math.round(rnd() * 2);
-    let cxp = x0, cyp = y0, a = ang, prev = { x: x0, y: y0 };
-    for (let s = 1; s <= steps; s++) {
-      a = clamp(a + (rnd() - 0.5) * deg(38), -deg(118), deg(118));
-      const seglen = len / steps;
-      const nx = clamp(cxp + Math.sin(a) * seglen, edge * 0.4, W - edge * 0.4);
-      const ny = clamp(cyp - Math.cos(a) * seglen, topMargin - 6, y0 + 44); // signed -> drifts sideways/down
-      const A = prev.y <= ny ? prev : { x: nx, y: ny };
-      const B = prev.y <= ny ? { x: nx, y: ny } : prev;
-      const seg = curveSeg(A.x, A.y, B.x, B.y, (rnd() - 0.5) * 9);
-      out.paths.push({ d: seg.d, w, len: seg.len, ry: Math.min(A.y, B.y), kind: "tendril" });
-      prev = { x: nx, y: ny }; cxp = nx; cyp = ny; w = Math.max(0.4, w * 0.84);
-    }
-    if (rnd() < 0.6) {
-      const hx = clamp(prev.x + (rnd() - 0.5) * 14, edge * 0.4, W - edge * 0.4);
-      const hy = Math.max(topMargin - 4, prev.y - (4 + rnd() * 9));
-      const hA = hy <= prev.y ? { x: hx, y: hy } : prev, hB = hy <= prev.y ? prev : { x: hx, y: hy };
-      const hs = curveSeg(hA.x, hA.y, hB.x, hB.y, 0);
-      out.paths.push({ d: hs.d, w: 0.4, len: hs.len, ry: Math.min(hy, prev.y), kind: "tendril" });
-    }
-    if (rnd() < 0.34) mkComp(prev.x, prev.y, prev.y);
-    if (rnd() < 0.2) mkComp(lerp(x0, prev.x, 0.55), lerp(y0, prev.y, 0.55), Math.min(y0, prev.y));
-    if (depth < 2 && rnd() < 0.5 * fill)
-      tendril(prev.x, prev.y, ang + (rnd() < 0.5 ? -1 : 1) * deg(26), len * 0.62, Math.max(0.4, w * 0.95), depth + 1);
-  }
-
-  // ---- one bold main root: monotonic climb from trunk to a wide target ----
-  function traceRoot(x0: number, y0: number, tx: number, ty: number, baseW: number, phase: number, pexp: number) {
-    const steps = 5 + Math.round(rnd() * 3);
-    const amp = 4 + rnd() * 7;
-    const freq = 0.9 + rnd() * 1.0;
-    const pts: { x: number; y: number }[] = [];
-    for (let s = 0; s <= steps; s++) {
-      const t = s / steps;
-      const xx = x0 + (tx - x0) * Math.pow(t, pexp) + Math.sin(t * Math.PI * freq + phase) * amp * t;
-      const yy = lerp(y0, ty, t);
-      pts.push({ x: clamp(xx, edge * 0.5, W - edge * 0.5), y: yy });
-    }
-    for (let s2 = 0; s2 < pts.length - 1; s2++) {
-      const lo = pts[s2], hi = pts[s2 + 1]; // hi = higher up (smaller y)
-      const w = lerp(baseW, 0.7, s2 / (pts.length - 1));
-      const bend = hi.x - lo.x >= 0 ? 1 : -1;
-      const seg = curveSeg(hi.x, hi.y, lo.x, lo.y, bend * Math.hypot(hi.x - lo.x, hi.y - lo.y) * 0.06 * curvy);
-      out.paths.push({ d: seg.d, w, len: seg.len, ry: Math.min(lo.y, hi.y), kind: "root" });
-      if (s2 > 0 && rnd() < M.padDensity * 0.26) out.pads.push({ cx: hi.x, cy: hi.y, ry: hi.y, size: clamp(w * 0.7, 1.6, 3) });
-      // copper vias & solder junctions strung densely along the roots
-      if (hi.y < rootEnd && rnd() < M.rootVias) mkComp(hi.x, hi.y, hi.y);
-      if (lo.y < rootEnd && rnd() < M.rootVias * 0.7)
-        mkComp(lerp(lo.x, hi.x, 0.5), lerp(lo.y, hi.y, 0.5), Math.min(lo.y, hi.y));
-      if (hi.y < rootEnd && rnd() < M.rootVias * 0.4)
-        mkComp(lerp(lo.x, hi.x, 0.25), lerp(lo.y, hi.y, 0.25), Math.min(lo.y, hi.y));
-      // loose tendrils all along the main
-      const nt = (rnd() < fill ? 1 : 0) + (rnd() < fill * 0.85 ? 1 : 0);
-      for (let td = 0; td < nt; td++) {
-        const localAng = Math.atan2(hi.x - lo.x, Math.max(1, lo.y - hi.y));
-        const so = rnd() < 0.5 ? -1 : 1;
-        const tAng = clamp(localAng + so * deg(22 + rnd() * 82), -deg(116), deg(116));
-        tendril(hi.x, hi.y, tAng, 20 + rnd() * 46, Math.max(0.5, w * 0.5), 0);
-      }
-    }
-    // fine root-hairs at the tip
-    const tip = pts[pts.length - 1], below = pts[pts.length - 2];
-    const upAng = Math.atan2(tip.x - below.x, Math.max(1, below.y - tip.y));
-    const hairs = 1 + (rnd() < fill * 0.45 ? 1 : 0);
-    for (let h = 0; h < hairs; h++) {
-      const a = upAng + (rnd() - 0.5) * deg(22);
-      const hl = 7 + rnd() * 11;
-      const hx = clamp(tip.x + Math.sin(a) * hl, edge * 0.5, W - edge * 0.5);
-      const hy = Math.max(topMargin - 2, tip.y - Math.abs(Math.cos(a)) * hl);
-      const hs = curveSeg(hx, hy, tip.x, tip.y, 0);
-      out.paths.push({ d: hs.d, w: 0.6, len: hs.len, ry: Math.min(tip.y, hy), kind: "hair" });
-    }
-    if (rnd() < 0.7) mkComp(tip.x, tip.y, tip.y);
-    return pts;
-  }
-
-  // wide, flat fan of a few bold mains
-  const mainChains: { x: number; y: number }[][] = [];
-  const mainN = Math.round(clamp(W / 170, 4, 11));
+  // ---- Bold tapering taproot: a shorter, wider, mirror-balanced fan that
+  // converges into the collar node. Roots leave the collar with a natural flare
+  // (no tight bundle) and taper hard to fine hairs; PCB vias ride each root.
   const halfW = W / 2 - edge;
-  for (let i = 0; i < mainN; i++) {
-    const u = ((i + 0.5) / mainN) * 2 - 1;
-    const ux = u === 0 ? 0 : Math.sign(u) * Math.pow(Math.abs(u), 0.6);
-    const tx = clamp(cx + ux * halfW + jit((halfW / mainN) * 0.7), edge, W - edge);
+  const rootHeight = Math.max(160, Math.min(rootEnd - topMargin - 8, W * 0.44));
+  const rootTop = rootEnd - rootHeight;
+  const nPairs = Math.round(clamp(W / 240, 4, 6));
+  const baseSpread = clamp(W * 0.012, 8, 22);
+
+  type Pt = { x: number; y: number };
+  type Seg = { ax: number; ay: number; bx: number; by: number; w: number; kind: "root" | "hair" };
+  type Sink = { segs: Seg[]; comps: Pt[] };
+
+  const cubicPts = (p0: Pt, c1: Pt, c2: Pt, p3: Pt, n: number): Pt[] => {
+    const pts: Pt[] = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, m = 1 - t;
+      pts.push({
+        x: m * m * m * p0.x + 3 * m * m * t * c1.x + 3 * m * t * t * c2.x + t * t * t * p3.x,
+        y: m * m * m * p0.y + 3 * m * m * t * c1.y + 3 * m * t * t * c2.y + t * t * t * p3.y,
+      });
+    }
+    return pts;
+  };
+  const pushTaper = (sink: Sink, pts: Pt[], baseW: number, tipW: number, exp: number) => {
+    for (let i = 0; i < pts.length - 1; i++) {
+      const t = i / (pts.length - 2 || 1);
+      const w = tipW + (baseW - tipW) * Math.pow(1 - t, exp);
+      sink.segs.push({ ax: pts[i].x, ay: pts[i].y, bx: pts[i + 1].x, by: pts[i + 1].y, w, kind: "root" });
+    }
+  };
+  const viasAlong = (sink: Sink, pts: Pt[], pitch: number) => {
+    let acc = pitch * 0.55;
+    for (let i = 1; i < pts.length; i++) {
+      acc += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+      if (acc >= pitch) { acc = 0; sink.comps.push({ x: pts[i].x, y: pts[i].y }); }
+    }
+  };
+  const tipHairs = (sink: Sink, pts: Pt[], n: number) => {
+    const tip = pts[pts.length - 1], pen = pts[pts.length - 2];
+    const ang = Math.atan2(tip.x - pen.x, pen.y - tip.y);
+    for (let h = 0; h < n; h++) {
+      const a = ang + (rnd() - 0.5) * deg(34);
+      const hl = 10 + rnd() * 14;
+      const hx = clamp(tip.x + Math.sin(a) * hl, edge * 0.5, W - edge * 0.5);
+      const hy = Math.max(topMargin - 4, tip.y - Math.abs(Math.cos(a)) * hl);
+      sink.segs.push({ ax: tip.x, ay: tip.y, bx: hx, by: hy, w: 0.8, kind: "hair" });
+    }
+  };
+  const fork = (sink: Sink, pts: Pt[], w: number, depthLeft: number, level: number) => {
+    if (depthLeft <= 0) return;
+    const ts = level === 1 ? [0.4, 0.62, 0.82] : [0.55, 0.8];
+    for (const t of ts) {
+      if (level > 1 && rnd() < 0.28) continue;
+      const idx = clamp(Math.round(t * (pts.length - 1)), 1, pts.length - 2);
+      const base = pts[idx], prev = pts[idx - 1];
+      const bang = Math.atan2(base.x - prev.x, prev.y - base.y);
+      const na = bang + deg(16 + rnd() * 20) * (rnd() < 0.5 ? -1 : 1);
+      const clen = lerp(rootHeight * 0.2, rootHeight * 0.36, rnd()) * (1 - level * 0.13);
+      const tx = clamp(base.x + Math.sin(na) * clen, edge, W - edge);
+      const ty = clamp(base.y - Math.abs(Math.cos(na)) * clen, topMargin, rootEnd);
+      const cp = cubicPts(
+        base,
+        { x: base.x + Math.sin(bang) * clen * 0.3, y: base.y - Math.cos(bang) * clen * 0.3 },
+        { x: tx - Math.sin(na) * clen * 0.3, y: ty + clen * 0.1 },
+        { x: tx, y: ty }, 9,
+      );
+      const cw = Math.max(1.1, w * 0.62);
+      pushTaper(sink, cp, cw, 0.6, 1.5);
+      // vias only at the major (first-level) junctions, kept sparse
+      if (level === 1) {
+        sink.comps.push({ x: base.x, y: base.y });
+        viasAlong(sink, cp, clamp(rootHeight * 0.34, 130, 190));
+      }
+      tipHairs(sink, cp, 1 + Math.floor(rnd() * 2));
+      fork(sink, cp, cw, depthLeft - 1, level + 1);
+    }
+  };
+  const genMain = (sink: Sink, side: number, rank: number) => {
+    const r0 = rank / nPairs;                         // 0 center .. 1 outer
+    const u = side * r0;
     const centrality = 1 - Math.abs(u);
-    const ty = topMargin + (1 - centrality) * rootEnd * 0.22 + rnd() * rootEnd * 0.07;
-    const baseW = M.trunkWidth * lerp(0.6, 1.0, centrality);
-    const pexp = lerp(0.88, 1.4, centrality);
-    mainChains.push(traceRoot(cx, rootEnd, tx, ty, baseW, rnd() * Math.PI * 2, pexp));
+    const baseX = cx + side * baseSpread * Math.pow(r0, 0.7);
+    const tx = clamp(cx + side * Math.pow(r0, 0.62) * halfW * 0.94 + jit(W * 0.015), edge, W - edge);
+    const ty = rootTop + (1 - centrality) * (rootEnd - rootTop) * 0.42 + rnd() * (rootHeight * 0.05);
+    const reachY = rootEnd - ty;
+    const dom = rank <= 1;
+    const baseW = dom
+      ? lerp(M.trunkWidth * 1.5, M.trunkWidth * 1.1, r0)
+      : lerp(M.trunkWidth * 0.95, M.trunkWidth * 0.62, r0);
+    const dx = Math.abs(tx - baseX);
+    // leave the collar flaring outward (no tight vertical bundle), arrive along the splay
+    const pts = cubicPts(
+      { x: baseX, y: rootEnd },
+      { x: baseX + side * dx * 0.22, y: rootEnd - reachY * 0.3 },
+      { x: tx - side * dx * 0.28, y: ty + reachY * 0.12 },
+      { x: tx, y: ty }, 16,
+    );
+    pushTaper(sink, pts, baseW, 0.7, 1.6);
+    viasAlong(sink, pts, clamp(rootHeight * 0.22, 95, 155));
+    tipHairs(sink, pts, 2 + Math.floor(rnd() * 3));
+    fork(sink, pts, baseW, dom ? 3 : 2, 1);
+    sink.comps.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y });
+  };
+  const flushSink = (sink: Sink) => {
+    for (const s of sink.segs) {
+      out.paths.push({
+        d: `M${rr(s.ax)} ${rr(s.ay)} L${rr(s.bx)} ${rr(s.by)}`,
+        w: s.w, len: Math.hypot(s.bx - s.ax, s.by - s.ay),
+        ry: Math.min(s.ay, s.by), kind: s.kind,
+      });
+    }
+    for (const c of sink.comps) mkComp(c.x, c.y, c.y);
+  };
+  const mirrorSink = (sink: Sink): Sink => ({
+    segs: sink.segs.map((s) => ({ ...s, ax: W - s.ax, bx: W - s.bx })),
+    comps: sink.comps.map((c) => ({ x: W - c.x, y: c.y })),
+  });
+
+  // center root (unmirrored), then right-side mains mirrored to the left so the
+  // fan is perfectly balanced behind the terminal.
+  const center: Sink = { segs: [], comps: [] };
+  genMain(center, 0, 0);
+  flushSink(center);
+  for (let r = 1; r <= nPairs; r++) {
+    const rs: Sink = { segs: [], comps: [] };
+    genMain(rs, 1, r);
+    flushSink(rs);
+    flushSink(mirrorSink(rs));
   }
-  out.pads.push({ cx, cy: rootEnd, ry: rootEnd, size: clamp(M.trunkWidth * 0.75, 2, 4.5) });
+  // the branch-point node where the trunk (tree) begins
+  out.pads.push({ cx, cy: rootEnd, ry: rootEnd, size: clamp(M.trunkWidth * 0.9, 2, 5) });
 
   // ---- trunk + spreading canopy ----
   const canopyStartY = rootEnd + Math.min(H * 0.05, 70);
@@ -356,8 +390,12 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
 
 function LeafNode({ lf }: { lf: Leaf }) {
   const x = rr(lf.cx), y = rr(lf.cy), s = lf.s;
-  // PCB nodes: a plated via-ring or a solid solder junction. Both bloom + pulse.
+  // PCB nodes: a plated via-ring or a solid solder junction. A lit core hops
+  // node-to-node (relay current) once the node has grown in.
   if (lf.style !== "blade") {
+    const RELAY_DUR = 2.1;                            // seconds — matches @keyframes tg-hop
+    const phase = (((lf.cy % 260) / 260) + 1) % 1;    // phased by y -> a downward wave
+    const coreHot = lf.col === COL.greenHex ? "#d3e8b4" : "#f4d7a0";
     return (
       <g className="tg-rnode" data-ry={Math.round(lf.ry)} style={{ color: lf.col }}>
         {lf.style === "via" ? (
@@ -371,28 +409,40 @@ function LeafNode({ lf }: { lf: Leaf }) {
             <circle cx={x} cy={y} r={rr(s * 0.6)} fill={lf.col} />
           </>
         )}
+        <circle
+          className="tg-via-core"
+          cx={x}
+          cy={y}
+          r={rr(s * (lf.style === "via" ? 0.62 : 0.5))}
+          fill={coreHot}
+          style={{ ["--phase" as string]: `${(-phase * RELAY_DUR).toFixed(2)}s` }}
+        />
       </g>
     );
   }
   // blade leaf: a single cheap almond (foliage is dense, so one element each).
   // Rotation + drift ride on CSS custom properties so they compose cleanly.
+  // The wrapping <g> carries the live mouse-repulsion translate (see the
+  // pointer effect below) so it stacks on top of the CSS drift, not against it.
   return (
-    <ellipse
-      className="tg-rleaf"
-      data-ry={Math.round(lf.ry)}
-      cx={x}
-      cy={y}
-      rx={rr(s * 1.5)}
-      ry={rr(s * 0.56)}
-      fill={lf.col}
-      fillOpacity={0.5}
-      style={{
-        ["--rot" as string]: `${rr(lf.rot)}deg`,
-        ["--dsway" as string]: `${rr(lf.sway)}px`,
-        ["--ddur" as string]: `${rr(lf.dur)}s`,
-        ["--ddel" as string]: `${rr(lf.del)}s`,
-      }}
-    />
+    <g className="tg-leaf-wrap">
+      <ellipse
+        className="tg-rleaf"
+        data-ry={Math.round(lf.ry)}
+        cx={x}
+        cy={y}
+        rx={rr(s * 1.5)}
+        ry={rr(s * 0.56)}
+        fill={lf.col}
+        fillOpacity={0.5}
+        style={{
+          ["--rot" as string]: `${rr(lf.rot)}deg`,
+          ["--dsway" as string]: `${rr(lf.sway)}px`,
+          ["--ddur" as string]: `${rr(lf.dur)}s`,
+          ["--ddel" as string]: `${rr(lf.del)}s`,
+        }}
+      />
+    </g>
   );
 }
 
@@ -501,6 +551,197 @@ export default function CircuitVines({
     };
   }, [scene]);
 
+  // Leaves scatter away from the cursor — the closer the pointer, the harder the
+  // gust; a light spring floats each leaf back home once the pointer moves on.
+  // Each leaf gets a per-frame translate on its wrapping <g>, so the CSS flutter
+  // keeps running underneath. Only leaves near the cursor are ever written to;
+  // the loop sleeps when nothing is moving.
+  useEffect(() => {
+    if (!scene) return;
+    const svg = svgRef.current;
+    if (!svg || typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    const groups = Array.from(svg.querySelectorAll<SVGGElement>(".tg-leaf-wrap"));
+    const n = groups.length;
+    if (!n) return;
+
+    const homeX = new Float32Array(n);
+    const homeY = new Float32Array(n);
+    const offX = new Float32Array(n);
+    const offY = new Float32Array(n);
+    const velX = new Float32Array(n);
+    const velY = new Float32Array(n);
+    const dirty = new Uint8Array(n);
+    for (let i = 0; i < n; i++) {
+      const leaf = groups[i].firstElementChild;
+      homeX[i] = leaf ? Number(leaf.getAttribute("cx")) : 0;
+      homeY[i] = leaf ? Number(leaf.getAttribute("cy")) : 0;
+    }
+
+    // Per-leaf character so a gust SCATTERS rather than shunting every leaf the
+    // same way: gVar varies how hard a leaf catches the wind; phase/fr detune its
+    // turbulent flutter.
+    const gVar = new Float32Array(n);
+    const phase = new Float32Array(n);
+    const fr = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      gVar[i] = 0.6 + Math.random() * 0.85;
+      phase[i] = Math.random() * Math.PI * 2;
+      fr[i] = 6 + Math.random() * 7;
+    }
+
+    // Wind model (pixels / seconds). The cursor doesn't repel leaves — its MOTION
+    // stirs a gust vector (gx,gy) that blows them DOWNWIND, parts them around the
+    // pointer, and adds turbulent flutter. A still cursor makes no wind: the gust
+    // decays away and the leaves fall calm. K/C are a soft, floaty spring so blown
+    // leaves get carried and drift home rather than snapping back.
+    const R = 240, R2 = R * R;
+    const DOWNWIND = 5.2;      // push along the gust direction
+    const PART = 1.5;         // parting away from the cursor
+    const TURB = 2.1;         // turbulent cross-wind flutter
+    const GUST_TAU = 0.14;    // how fast a gust dies once the cursor stops
+    const GUST_MIN = 55;      // px/s below which there's effectively no wind
+    const GUST_MAX = 4200;    // clamp so a hard flick can't fling leaves off-screen
+    const K = 46, C = 8;
+    const MAXOFF = 200, MAXOFF2 = MAXOFF * MAXOFF;
+
+    let mx = 0, my = 0, lastCX = 0, lastCY = 0, hasMouse = false;
+    let gx = 0, gy = 0;       // live gust velocity (px/s)
+    let clock = 0;
+    let prevCX = 0, prevCY = 0, prevTS = 0, havePrev = false;
+    let raf = 0, running = false, lastT = 0;
+
+    const frame = (t: number) => {
+      let dt = lastT ? (t - lastT) / 1000 : 0.016;
+      lastT = t;
+      if (dt > 0.05) dt = 0.05;
+      else if (dt <= 0) dt = 0.016;
+      clock += dt;
+
+      // the gust decays every frame; movement replenishes it in onMove
+      const gd = Math.exp(-dt / GUST_TAU);
+      gx *= gd; gy *= gd;
+      const gmag = Math.hypot(gx, gy);
+      const windOn = hasMouse && gmag > GUST_MIN;
+      const gux = windOn ? gx / gmag : 0;
+      const guy = windOn ? gy / gmag : 0;
+
+      let anyAwake = false;
+      for (let i = 0; i < n; i++) {
+        let ox = offX[i], oy = offY[i], vx = velX[i], vy = velY[i];
+        let ax = -K * ox - C * vx; // spring toward home + damping
+        let ay = -K * oy - C * vy;
+        if (windOn) {
+          const dx = homeX[i] + ox - mx;
+          const dy = homeY[i] + oy - my;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < R2) {
+            const d = Math.sqrt(d2) || 0.001;
+            const f = 1 - d / R;
+            const w = f * f * gVar[i];           // proximity × how well this leaf catches wind
+            ax += DOWNWIND * gx * w;             // blow downwind
+            ay += DOWNWIND * gy * w;
+            const inv = 1 / d;
+            ax += PART * gmag * dx * inv * w;     // part around the cursor
+            ay += PART * gmag * dy * inv * w;
+            const turb = TURB * gmag * w * Math.sin(clock * fr[i] + phase[i]);
+            ax += -guy * turb;                    // flutter across the wind
+            ay += gux * turb;
+          }
+        }
+        vx += ax * dt; vy += ay * dt;
+        ox += vx * dt; oy += vy * dt;
+        const m2 = ox * ox + oy * oy;
+        if (m2 > MAXOFF2) {
+          const sc = MAXOFF / Math.sqrt(m2);
+          ox *= sc; oy *= sc;
+        }
+        offX[i] = ox; offY[i] = oy; velX[i] = vx; velY[i] = vy;
+
+        if (ox > 0.2 || ox < -0.2 || oy > 0.2 || oy < -0.2 ||
+            vx > 2 || vx < -2 || vy > 2 || vy < -2) {
+          anyAwake = true;
+          groups[i].setAttribute("transform", `translate(${ox.toFixed(2)} ${oy.toFixed(2)})`);
+          dirty[i] = 1;
+        } else if (dirty[i]) {
+          offX[i] = 0; offY[i] = 0; velX[i] = 0; velY[i] = 0;
+          groups[i].removeAttribute("transform");
+          dirty[i] = 0;
+        }
+      }
+
+      if (anyAwake || windOn) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        running = false;
+        lastT = 0;
+      }
+    };
+
+    const wake = () => {
+      if (!running) {
+        running = true;
+        lastT = 0;
+        raf = requestAnimationFrame(frame);
+      }
+    };
+
+    let rect = svg.getBoundingClientRect();
+    const refreshRect = () => { rect = svg.getBoundingClientRect(); };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+      lastCX = e.clientX; lastCY = e.clientY;
+      mx = e.clientX - rect.left;
+      my = e.clientY - rect.top;
+      hasMouse = true;
+      if (havePrev) {
+        const dtE = Math.max(8, e.timeStamp - prevTS) / 1000;      // seconds
+        let ivx = (e.clientX - prevCX) / dtE;                      // instantaneous px/s
+        let ivy = (e.clientY - prevCY) / dtE;
+        const im = Math.hypot(ivx, ivy);
+        if (im > GUST_MAX) { const s = GUST_MAX / im; ivx *= s; ivy *= s; }
+        // fold the flick into the gust (bias toward the newest motion)
+        gx = gx * 0.35 + ivx * 0.65;
+        gy = gy * 0.35 + ivy * 0.65;
+      }
+      prevCX = e.clientX; prevCY = e.clientY; prevTS = e.timeStamp; havePrev = true;
+      wake();
+    };
+
+    const onScroll = () => {
+      refreshRect();
+      if (!hasMouse) return;
+      mx = lastCX - rect.left; // page moved under a stationary cursor
+      my = lastCY - rect.top;
+      wake();
+    };
+
+    const onLeave = () => {
+      hasMouse = false;
+      havePrev = false;
+      wake(); // let the spring float everything home
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", refreshRect, { passive: true });
+    document.addEventListener("mouseleave", onLeave);
+    window.addEventListener("blur", onLeave);
+
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", refreshRect);
+      document.removeEventListener("mouseleave", onLeave);
+      window.removeEventListener("blur", onLeave);
+      cancelAnimationFrame(raf);
+      for (let i = 0; i < n; i++) groups[i].removeAttribute("transform");
+    };
+  }, [scene]);
+
   const VINE = "url(#tgVineGrad)";
   const s0 = scene ? clamp(scene.copperEnd / dims.h, 0, 0.97) : 0;
   const s1 = scene ? clamp(scene.greenStart / dims.h, s0 + 0.02, 0.99) : 1;
@@ -520,10 +761,10 @@ export default function CircuitVines({
             </linearGradient>
           </defs>
 
-          {/* fine, mossy wisps behind the bold structure */}
+          {/* fine root-hairs behind the bold structure */}
           <g className="tg-roots-fine" strokeLinecap="round" strokeLinejoin="round">
             {scene.paths
-              .filter((p) => p.kind === "tendril" || p.kind === "hair")
+              .filter((p) => p.kind === "hair")
               .map((p, i) => (
                 <path
                   key={`f${i}`}
