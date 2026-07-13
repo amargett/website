@@ -145,7 +145,7 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
   const halfW = W / 2 - edge;
   const rootHeight = Math.max(160, Math.min(rootEnd - topMargin - 8, W * 0.44));
   const rootTop = rootEnd - rootHeight;
-  const nPairs = Math.round(clamp(W / 240, 4, 6));
+  const nPairs = Math.round(clamp(W / 400, 2, 3));
   // Every root base sits right on the thin trunk line so the vines converge to a
   // point and blend into it (no wide cone), the same on desktop and mobile.
   const baseSpread = M.trunkWidth * 0.35;
@@ -194,14 +194,17 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
   };
   const fork = (sink: Sink, pts: Pt[], w: number, depthLeft: number, level: number) => {
     if (depthLeft <= 0) return;
-    const ts = level === 1 ? [0.4, 0.62, 0.82] : [0.55, 0.8];
+    // Many small tendrils split off each root: more branch points along the
+    // first level, and they keep splitting one level deeper. Tendrils are thin
+    // and short so they read as a mossy haze of hairs, not as extra main roots.
+    const ts = level === 1 ? [0.32, 0.46, 0.6, 0.72, 0.84] : [0.52, 0.8];
     for (const t of ts) {
-      if (level > 1 && rnd() < 0.28) continue;
+      if (level > 1 && rnd() < 0.14) continue;
       const idx = clamp(Math.round(t * (pts.length - 1)), 1, pts.length - 2);
       const base = pts[idx], prev = pts[idx - 1];
       const bang = Math.atan2(base.x - prev.x, prev.y - base.y);
-      const na = bang + deg(16 + rnd() * 20) * (rnd() < 0.5 ? -1 : 1);
-      const clen = lerp(rootHeight * 0.2, rootHeight * 0.36, rnd()) * (1 - level * 0.13);
+      const na = bang + deg(18 + rnd() * 26) * (rnd() < 0.5 ? -1 : 1);
+      const clen = lerp(rootHeight * 0.13, rootHeight * 0.26, rnd()) * (1 - level * 0.12);
       const tx = clamp(base.x + Math.sin(na) * clen, edge, W - edge);
       const ty = clamp(base.y - Math.abs(Math.cos(na)) * clen, topMargin, rootEnd);
       const cp = cubicPts(
@@ -210,14 +213,14 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
         { x: tx - Math.sin(na) * clen * 0.3, y: ty + clen * 0.1 },
         { x: tx, y: ty }, 9,
       );
-      const cw = Math.max(1.1, w * 0.62);
-      pushTaper(sink, cp, cw, 0.6, 1.5);
+      const cw = Math.max(0.9, w * 0.5);
+      pushTaper(sink, cp, cw, 0.5, 1.6);
       // vias only at the major (first-level) junctions, kept sparse
       if (level === 1) {
         sink.comps.push({ x: base.x, y: base.y });
         viasAlong(sink, cp, clamp(rootHeight * 0.34, 130, 190));
       }
-      tipHairs(sink, cp, 1 + Math.floor(rnd() * 2));
+      tipHairs(sink, cp, 2 + Math.floor(rnd() * 3));
       fork(sink, cp, cw, depthLeft - 1, level + 1);
     }
   };
@@ -245,7 +248,7 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
     pushTaper(sink, pts, baseW, 0.7, 1.6, 0.16);
     viasAlong(sink, pts, clamp(rootHeight * 0.22, 95, 155));
     tipHairs(sink, pts, 2 + Math.floor(rnd() * 3));
-    fork(sink, pts, baseW, dom ? 3 : 2, 1);
+    fork(sink, pts, baseW, dom ? 4 : 3, 1);
     sink.comps.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y });
   };
   const flushSink = (sink: Sink) => {
