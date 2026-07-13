@@ -146,7 +146,9 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
   const rootHeight = Math.max(160, Math.min(rootEnd - topMargin - 8, W * 0.44));
   const rootTop = rootEnd - rootHeight;
   const nPairs = Math.round(clamp(W / 240, 4, 6));
-  const baseSpread = clamp(W * 0.012, 8, 22);
+  // Every root base sits right on the thin trunk line so the vines converge to a
+  // point and blend into it (no wide cone), the same on desktop and mobile.
+  const baseSpread = M.trunkWidth * 0.35;
 
   type Pt = { x: number; y: number };
   type Seg = { ax: number; ay: number; bx: number; by: number; w: number; kind: "root" | "hair" };
@@ -163,10 +165,12 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
     }
     return pts;
   };
-  const pushTaper = (sink: Sink, pts: Pt[], baseW: number, tipW: number, exp: number) => {
+  const pushTaper = (sink: Sink, pts: Pt[], baseW: number, tipW: number, exp: number, pinch = 0) => {
     for (let i = 0; i < pts.length - 1; i++) {
       const t = i / (pts.length - 2 || 1);
-      const w = tipW + (baseW - tipW) * Math.pow(1 - t, exp);
+      let w = tipW + (baseW - tipW) * Math.pow(1 - t, exp);
+      // pinch the base thin so the vine blends into the thin trunk line at the collar
+      if (pinch > 0) w = Math.max(tipW, w * clamp(t / pinch, 0.35, 1));
       sink.segs.push({ ax: pts[i].x, ay: pts[i].y, bx: pts[i + 1].x, by: pts[i + 1].y, w, kind: "root" });
     }
   };
@@ -230,14 +234,15 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
       ? lerp(M.trunkWidth * 1.5, M.trunkWidth * 1.1, r0)
       : lerp(M.trunkWidth * 0.95, M.trunkWidth * 0.62, r0);
     const dx = Math.abs(tx - baseX);
-    // leave the collar flaring outward (no tight vertical bundle), arrive along the splay
+    // leave the collar nearly vertical (so the vines stay bundled and merge into
+    // the trunk as one), then bend out to the splay higher up.
     const pts = cubicPts(
       { x: baseX, y: rootEnd },
-      { x: baseX + side * dx * 0.22, y: rootEnd - reachY * 0.3 },
+      { x: baseX + side * dx * 0.08, y: rootEnd - reachY * 0.34 },
       { x: tx - side * dx * 0.28, y: ty + reachY * 0.12 },
       { x: tx, y: ty }, 16,
     );
-    pushTaper(sink, pts, baseW, 0.7, 1.6);
+    pushTaper(sink, pts, baseW, 0.7, 1.6, 0.16);
     viasAlong(sink, pts, clamp(rootHeight * 0.22, 95, 155));
     tipHairs(sink, pts, 2 + Math.floor(rnd() * 3));
     fork(sink, pts, baseW, dom ? 3 : 2, 1);
@@ -269,14 +274,11 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
     flushSink(rs);
     flushSink(mirrorSink(rs));
   }
-  // the branch-point node where the trunk (tree) begins
-  out.pads.push({ cx, cy: rootEnd, ry: rootEnd, size: clamp(M.trunkWidth * 0.9, 2, 5) });
 
   // ---- trunk + spreading canopy ----
   const canopyStartY = rootEnd + Math.min(H * 0.05, 70);
   const trunk = pcbSeg(cx, rootEnd, cx, canopyStartY, "orthogonal");
   out.paths.push({ d: trunk.d, w: M.trunkWidth, len: trunk.len, ry: rootEnd, kind: "trunk" });
-  out.pads.push({ cx, cy: canopyStartY, ry: canopyStartY, size: M.trunkWidth * 0.7 });
 
   // The canopy is a LUSH mangrove crown: a dense green fan sprouting DOWN from
   // the trunk to fill the featured-work area with foliage. The project cards
@@ -300,10 +302,20 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
   // The crown is a real branching tree: trunk -> boughs -> branches, clothed in
   // leaves. This is the TREE STRUCTURE; the blurred glow + scattered leaves
   // below only add body around it.
-  const crownHalf = W * 0.62;                         // keep the crown bounded (no corner spokes)
+  // The crown scales with WIDTH (like the roots), not just canopy height. On a
+  // tall, narrow viewport canopyH dwarfs the width, so keying bough length +
+  // splay off canopyH alone made the boughs overshoot the sides and pile up
+  // against the clamp walls — the "squished" crown. crownHalf now stays inside
+  // the screen, and both the splay and the bough length are bounded by it, so
+  // the crown fans out to fill the width proportionally instead of ramming the
+  // edges. (Desktop was already width-safe, so it's left essentially unchanged.)
+  const crownHalf = W * 0.46;                         // half-width the crown fills (inside the screen)
   const loX = clamp(cx - crownHalf, edge, W);
   const hiX = clamp(cx + crownHalf, 0, W - edge);
-  const splay0 = deg(M.branchSplay);
+  // a tall, narrow crown tips its splay toward vertical (spend length on depth,
+  // not width); a wide crown keeps the full splay.
+  const splay0 = deg(M.branchSplay) * clamp((crownHalf / canopyH) * 2.5, 0.5, 1);
+  const boughLen = Math.min(canopyH * 0.2, crownHalf * 1.8);
   const CANOPY_LEVELS = 4;
 
   function growBranch(x: number, y: number, angle: number, len: number, width: number, level: number, spine: { x: number; y: number }[] | null) {
@@ -329,8 +341,14 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
     const deep = level / CANOPY_LEVELS;
     for (let k = 0; k < kids; k++) {
       const kf = (k / (kids - 1)) * 2 - 1;              // -1..1
-      // spread wide early, curl toward straight-down deeper -> a rounded crown
-      const na = clamp(angle * (0.92 - deep * 0.3) + kf * splay0 * (0.95 - deep * 0.4), -1.4, 1.4);
+      // spread wide early, curl toward straight-down deeper -> a rounded crown.
+      // A branch already near the crown edge stops splaying outward (spreadRoom)
+      // and is pulled back toward vertical (restore), so the crown self-bounds to
+      // ~crownHalf and fans across the width instead of piling up at the sides.
+      const nx = (ex - cx) / crownHalf;                 // -1 .. 1 within the crown
+      const spreadRoom = clamp(1 - Math.max(0, Math.abs(nx) - 0.4) / 0.6, 0.05, 1);
+      const restore = Math.sign(nx) * splay0 * Math.max(0, Math.abs(nx) - 0.55) * 2.6;
+      const na = clamp(angle * (0.9 - deep * 0.3) + kf * splay0 * (0.92 - deep * 0.4) * spreadRoom - restore, -1.4, 1.4);
       growBranch(ex, ey, na, len * (0.74 + rnd() * 0.08), width * 0.7, level + 1, k === 0 ? spine : null);
     }
   }
@@ -340,7 +358,7 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
   for (let bi = 0; bi < baseCount; bi++) {
     const f0 = (bi / (baseCount - 1)) * 2 - 1;          // -1..1
     const csp: { x: number; y: number }[] = [{ x: cx, y: canopyStartY }];
-    growBranch(cx, canopyStartY, f0 * splay0 * 0.85, canopyH * 0.26, M.trunkWidth * 0.82, 1, csp);
+    growBranch(cx, canopyStartY, f0 * splay0 * 0.85, boughLen, M.trunkWidth * 0.82, 1, csp);
     canopySpines.push(csp);
   }
 
