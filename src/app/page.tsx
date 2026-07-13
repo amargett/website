@@ -1,9 +1,8 @@
 import { client } from "../sanity/lib/client";
 import Link from "next/link";
 import TerminalHero from "../components/TerminalHero";
-import CircuitVines from "../components/CircuitVines";
+import HomeTree from "../components/HomeTree";
 import FeaturedMasonry from "../components/FeaturedMasonry";
-import FeaturedOrchard from "../components/FeaturedOrchard";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +49,7 @@ function HeroSection() {
 
 function FeaturedGrid({ projects }: { projects: any[] }) {
   return (
-    <main className="tg-content relative px-4 sm:px-6 pb-28">
+    <main className="tg-content relative px-4 sm:px-6 pb-28 lg:min-h-[86vh]">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-baseline gap-3 mb-8 border-b border-[var(--tg-border)] pb-4">
           <h2 className="text-[var(--tg-fg)] text-base sm:text-lg font-semibold">
@@ -66,16 +65,11 @@ function FeaturedGrid({ projects }: { projects: any[] }) {
       {projects.length === 0 ? (
         <p className="max-w-6xl mx-auto text-[var(--tg-dim)] text-sm">// no featured projects yet.</p>
       ) : (
-        <>
-          {/* desktop: fruit-cards hang on the tree — full width so they meet the canopy */}
-          <div className="hidden lg:block">
-            <FeaturedOrchard projects={projects} />
-          </div>
-          {/* touch / small screens: the tidy grid (no hover there) */}
-          <div className="lg:hidden max-w-6xl mx-auto">
-            <FeaturedMasonry projects={projects} />
-          </div>
-        </>
+        // Desktop hangs the fruit-cards on the tree's real branch tips (FruitOverlay
+        // in HomeTree). Touch / small screens get the tidy grid.
+        <div className="lg:hidden max-w-6xl mx-auto">
+          <FeaturedMasonry projects={projects} />
+        </div>
       )}
     </main>
   );
@@ -94,7 +88,7 @@ export default async function Home() {
 
   return (
     <div className="terminal-garden">
-      <CircuitVines />
+      <HomeTree projects={featuredProjects} />
       <HeroSection />
       {fetchFailed ? (
         <main className="tg-content px-4 sm:px-6 pb-28 max-w-6xl mx-auto">

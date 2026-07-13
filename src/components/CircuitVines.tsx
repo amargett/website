@@ -65,7 +65,8 @@ type CompStyle = "via" | "junction";
 type Leaf = { cx: number; cy: number; ry: number; style: "blade" | CompStyle; col: string; s: number; rot: number; accent: boolean; sway: number; dur: number; del: number };
 type Spark = { d: string; c: number; len: number; w: number; dur: string; delay: string };
 type Blob = { cx: number; cy: number; rx: number; ry: number; op: number };
-type Scene = { paths: Path[]; pads: Pad[]; leaves: Leaf[]; sparks: Spark[]; blobs: Blob[]; copperEnd: number; greenStart: number };
+type Anchor = { x: number; y: number };
+type Scene = { paths: Path[]; pads: Pad[]; leaves: Leaf[]; sparks: Spark[]; blobs: Blob[]; copperEnd: number; greenStart: number; fruitAnchors: Anchor[] };
 
 // stepped PCB-ish segment (used for the trunk)
 function pcbSeg(x1: number, y1: number, x2: number, y2: number, style: "orthogonal" | "diagonal45") {
@@ -90,10 +91,11 @@ function curveSeg(x1: number, y1: number, x2: number, y2: number, off: number) {
   return { d: `M${rr(x1)} ${rr(y1)} Q${rr(cx)} ${rr(cy)} ${rr(x2)} ${rr(y2)}`, len };
 }
 
-function generate(W: number, H: number, rootEnd: number): Scene {
+function generate(W: number, H: number, rootEnd: number, fruitCount: number): Scene {
   const rnd = mulberry32(M.seed);
   const cx = W / 2;
-  const out: Scene = { paths: [], pads: [], leaves: [], sparks: [], blobs: [], copperEnd: 0, greenStart: 0 };
+  const out: Scene = { paths: [], pads: [], leaves: [], sparks: [], blobs: [], copperEnd: 0, greenStart: 0, fruitAnchors: [] };
+  const tips: Anchor[] = [];
   const topMargin = 12;
   const edge = Math.max(4, W * 0.008);
   const fill = M.rootFill;
@@ -284,6 +286,7 @@ function generate(W: number, H: number, rootEnd: number): Scene {
       canopyLeaf(lerp(x, ex, 0.4 + rnd() * 0.5) + jit(13), lerp(y, ey, 0.4 + rnd() * 0.5) + jit(9));
     }
     if (level >= CANOPY_LEVELS || width < 0.8) {
+      tips.push({ x: ex, y: ey });                      // a real branch tip a fruit can hang from
       const nleaf = 1 + (rnd() < 0.5 ? 1 : 0);          // small leaf tuft at the tip
       for (let i = 0; i < nleaf; i++) canopyLeaf(ex + jit(16), ey + jit(12));
       return;
@@ -307,6 +310,26 @@ function generate(W: number, H: number, rootEnd: number): Scene {
     canopySpines.push(csp);
   }
 
+
+  // Pick `fruitCount` real branch tips, spread evenly across the crown, for the
+  // fruit-cards to hang from. Each target x claims the nearest un-used tip.
+  if (fruitCount > 0 && tips.length) {
+    const band = tips.filter((t) => t.y > canopyStartY + canopyH * 0.12 && t.y < canopyStartY + canopyH * 0.72);
+    const pool = band.length >= fruitCount ? band : tips;
+    const used = new Set<number>();
+    const need = Math.min(fruitCount, pool.length);
+    for (let i = 0; i < need; i++) {
+      const tx = lerp(edge + W * 0.05, W - edge - W * 0.05, need === 1 ? 0.5 : i / (need - 1));
+      let best = -1, bestD = Infinity;
+      for (let j = 0; j < pool.length; j++) {
+        if (used.has(j)) continue;
+        const d = Math.abs(pool[j].x - tx);
+        if (d < bestD) { bestD = d; best = j; }
+      }
+      if (best >= 0) { used.add(best); out.fruitAnchors.push(pool[best]); }
+    }
+    out.fruitAnchors.sort((a, b) => a.x - b.x);
+  }
 
   // falling leaves: warm leaves drifting down from the crown, through the open
   // ground below the tree, fanning wider and gathering denser toward the foot
@@ -373,7 +396,13 @@ function LeafNode({ lf }: { lf: Leaf }) {
   );
 }
 
-export default function CircuitVines() {
+export default function CircuitVines({
+  fruitCount = 0,
+  onAnchors,
+}: {
+  fruitCount?: number;
+  onAnchors?: (anchors: Anchor[]) => void;
+} = {}) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [dims, setDims] = useState({ w: 0, h: 0, heroH: 0 });
@@ -398,9 +427,14 @@ export default function CircuitVines() {
   }, []);
 
   const scene = useMemo(
-    () => (dims.w > 0 && dims.h > 0 ? generate(dims.w, dims.h, dims.heroH || dims.h * 0.32) : null),
-    [dims.w, dims.h, dims.heroH],
+    () => (dims.w > 0 && dims.h > 0 ? generate(dims.w, dims.h, dims.heroH || dims.h * 0.32, fruitCount) : null),
+    [dims.w, dims.h, dims.heroH, fruitCount],
   );
+
+  // report the branch-tip anchors up so the fruit-cards can hang from them
+  useEffect(() => {
+    if (scene && onAnchors) onAnchors(scene.fruitAnchors);
+  }, [scene, onAnchors]);
 
   // Growth reveals TOP -> BOTTOM: on load a front descends from the top over
   // ~2s; afterwards scrolling extends the front further down (one-way).

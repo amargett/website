@@ -591,6 +591,11 @@ body::before {
    ============================================================ */
 .tg-orchard { position: relative; width: 100%; z-index: 2; }
 
+/* full-page overlay: fruit-cards positioned on the tree's real branch-tip
+   anchors (shares CircuitVines' coordinate space). */
+.tg-fruit-overlay { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.tg-fruit-overlay .tg-orchard-node { pointer-events: auto; }
+
 .tg-orchard-stems { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
 .tg-orchard-stem {
   fill: none;
