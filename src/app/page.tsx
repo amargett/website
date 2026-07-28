@@ -1,8 +1,8 @@
 import { client } from "../sanity/lib/client";
 import Link from "next/link";
 import TerminalHero from "../components/TerminalHero";
-import HomeTree from "../components/HomeTree";
-import FeaturedMasonry from "../components/FeaturedMasonry";
+import CircuitVines from "../components/CircuitVines";
+import FeaturedGrove from "../components/FeaturedGrove";
 
 export const dynamic = "force-dynamic";
 
@@ -49,9 +49,11 @@ function HeroSection() {
 
 function FeaturedGrid({ projects }: { projects: any[] }) {
   return (
-    <main className="tg-content relative px-4 sm:px-6 pb-28 lg:min-h-[86vh]">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-baseline gap-3 mb-8 border-b border-[var(--tg-border)] pb-4">
+    <main className="tg-content relative px-4 sm:px-6 pb-28">
+      {/* right padding keeps a clear corridor for the trunk; the tree measures
+          each card's top-right corner and lands a branch + leaf on it */}
+      <div className="max-w-6xl mx-auto pr-10 sm:pr-14 lg:pr-16 xl:pr-6">
+        <div className="flex items-baseline gap-3 mb-10 border-b border-[var(--tg-border)] pb-4">
           <h2 className="text-[var(--tg-fg)] text-base sm:text-lg font-semibold">
             <span className="text-[var(--tg-green)]">❯</span> featured work
           </h2>
@@ -60,17 +62,12 @@ function FeaturedGrid({ projects }: { projects: any[] }) {
           </span>
         </div>
 
+        {projects.length === 0 ? (
+          <p className="text-[var(--tg-dim)] text-sm">// no featured projects yet.</p>
+        ) : (
+          <FeaturedGrove projects={projects} />
+        )}
       </div>
-
-      {projects.length === 0 ? (
-        <p className="max-w-6xl mx-auto text-[var(--tg-dim)] text-sm">// no featured projects yet.</p>
-      ) : (
-        // Desktop hangs the fruit-cards on the tree's real branch tips (FruitOverlay
-        // in HomeTree). Touch / small screens get the tidy grid.
-        <div className="lg:hidden max-w-6xl mx-auto">
-          <FeaturedMasonry projects={projects} />
-        </div>
-      )}
     </main>
   );
 }
@@ -88,7 +85,7 @@ export default async function Home() {
 
   return (
     <div className="terminal-garden">
-      <HomeTree projects={featuredProjects} />
+      <CircuitVines />
       <HeroSection />
       {fetchFailed ? (
         <main className="tg-content px-4 sm:px-6 pb-28 max-w-6xl mx-auto">

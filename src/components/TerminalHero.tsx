@@ -11,8 +11,7 @@ const LINES: Line[] = [
     cmd: "cat me.txt",
     out: (
       <span className="text-[var(--tg-fg)]">
-        Ashley Margetts : <span className="text-[var(--tg-amber)]">MIT</span>{" "}
-        Robotics &amp; Mechanical Engineering.
+        Hi, I'm Ashley. I like solving problems &amp; building things.
       </span>
     ),
   },
@@ -20,17 +19,8 @@ const LINES: Line[] = [
     cmd: "ls ~/interests",
     out: (
       <span className="text-[var(--tg-green)]">
-        mechanical-design/{"  "}mechatronics/{"  "}robotic-systems/{"  "}
+        mechatronics/{"  "}robotic-systems/{"  "} compliant-mechanisms/{"  "}
         <span className="text-[var(--tg-amber)]">making/</span>
-      </span>
-    ),
-  },
-  {
-    cmd: "systemctl status open-to-work.service",
-    out: (
-      <span className="text-[var(--tg-fg)]">
-        <span className="text-[var(--tg-green)]">●</span> active (running) — open
-        to <span className="text-[var(--tg-amber)]">new full-time roles</span> ↗
       </span>
     ),
   },

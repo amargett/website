@@ -1,35 +1,28 @@
 "use client";
 
-// Terminal Garden — inverted circuit-tree background for the home page.
+// Terminal Garden — inverted sapling along the RIGHT edge of the home page.
 //
-// The page is an upside-down tree. The TOP is the ROOTS (you're ssh'd into
-// root): a few bold copper main roots leave a central trunk and fan out wide
-// and flat across the width, shedding a haze of loose, mossy tendrils thick
-// with copper PCB vias and solder junctions. As the roots descend they bundle
-// into the trunk and
-// metamorphose copper -> green, branching into a spreading canopy over the
-// featured work below. Bright charge pulses run the whole descent — from a
-// root tip, through the trunk, into the canopy. Everything draws in TOP -> BOTTOM.
+// The reference is a skinny single-trunk sapling, flipped: the TOP of the page
+// is the ROOTS (you're ssh'd into root) — copper mains fanning wide across the
+// hero, shedding mossy tendrils studded with PCB vias — which bundle into a
+// collar and become ONE slender trunk running down the right side. When the
+// trunk reaches the featured work it turns into a tree: limbs on both sides.
+// Every LEFT limb belongs to a project — it leaves the trunk above the card
+// and flattens into a leaf pinned at the card's top-right corner (corners are
+// measured from the real DOM, so branches land exactly). RIGHT limbs are short
+// stubs toward the page edge. Past the last card the trunk tapers to the
+// sapling's leader tip in the open ground, crowned with a tuft of leaves.
+// Everything still grows in TOP -> BOTTOM with the scroll front, vias relay
+// charge pulses, and leaves scatter in the cursor's gust.
 //
 // Geometry is measured on the client so the SVG maps 1:1 to pixels, and
-// regenerates when the page's width/height changes.
+// regenerates when the page's size or the card corners change.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-// ---- Mangrove concept (chosen direction) ---------------------------------
 const M = {
-  rootFill: 1.0,        // tendril density
-  rootVias: 0.85,       // copper PCB vias through the upper roots
-  metamorphOrganic: 0.84,
-  trunkWidth: 6.4,
-  canopySpread: 480,
-  branchLevels: 4,
-  branchSplay: 58,
-  leafDensity: 0.86,
-  padDensity: 0.38,
-  sparkDensity: 0.55,
-  accentMix: 0.3,
-  glow: 0.55,
+  trunkWidth: 5.4,      // collar width; tapers to ~1px at the leader tip
+  accentMix: 0.3,       // warm accent share among green leaves
   seed: 4173,
 };
 
@@ -57,69 +50,70 @@ function mulberry32(a: number) {
 const rr = (n: number) => Math.round(n * 10) / 10;
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const deg = (d: number) => (d * Math.PI) / 180;
 
-type Path = { d: string; w: number; ry: number; len: number; kind: "root" | "tendril" | "hair" | "trunk" | "branch" };
+type Path = { d: string; w: number; ry: number; len: number; kind: "root" | "hair" | "trunk" | "branch" };
 type Pad = { cx: number; cy: number; ry: number; size: number };
 type CompStyle = "via" | "junction";
-type Leaf = { cx: number; cy: number; ry: number; style: "blade" | CompStyle; col: string; s: number; rot: number; accent: boolean; sway: number; dur: number; del: number };
-type Blob = { cx: number; cy: number; rx: number; ry: number; op: number };
+type Leaf = { cx: number; cy: number; ry: number; style: "blade" | CompStyle; col: string; s: number; rot: number; accent: boolean; sway: number; dur: number; del: number; op?: number };
 type Anchor = { x: number; y: number };
-type Scene = { paths: Path[]; pads: Pad[]; leaves: Leaf[]; blobs: Blob[]; copperEnd: number; greenStart: number; fruitAnchors: Anchor[] };
+type Scene = { paths: Path[]; pads: Pad[]; leaves: Leaf[]; copperEnd: number; greenStart: number };
 
-// stepped PCB-ish segment (used for the trunk)
-function pcbSeg(x1: number, y1: number, x2: number, y2: number, style: "orthogonal" | "diagonal45") {
-  const dx = x2 - x1, dy = y2 - y1, adx = Math.abs(dx);
-  if (adx < 1.5) return { d: `M${rr(x1)} ${rr(y1)} V${rr(y2)}`, len: Math.abs(dy) };
-  if (style === "orthogonal") {
-    const my = y1 + dy * 0.55;
-    return { d: `M${rr(x1)} ${rr(y1)} V${rr(my)} H${rr(x2)} V${rr(y2)}`, len: Math.abs(my - y1) + adx + Math.abs(y2 - my) };
-  }
-  const m = Math.min(adx, Math.abs(dy)), vy = y2 - m;
-  let d = `M${rr(x1)} ${rr(y1)}`;
-  if (Math.abs(vy - y1) > 1) d += ` V${rr(vy)}`;
-  d += ` L${rr(x2)} ${rr(y2)}`;
-  return { d, len: Math.abs(vy - y1) + m * 1.414 };
-}
+type Pt = { x: number; y: number };
+type Seg = { ax: number; ay: number; bx: number; by: number; w: number; kind: "root" | "hair" | "trunk" | "branch" };
+type Sink = { segs: Seg[]; comps: Pt[] };
 
-// organic quadratic-bezier segment
-function curveSeg(x1: number, y1: number, x2: number, y2: number, off: number) {
-  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
-  const cx = mx + (-dy / L) * off, cy = my + (dx / L) * off;
-  const len = Math.hypot(cx - x1, cy - y1) + Math.hypot(x2 - cx, y2 - cy);
-  return { d: `M${rr(x1)} ${rr(y1)} Q${rr(cx)} ${rr(cy)} ${rr(x2)} ${rr(y2)}`, len };
-}
-
-function generate(W: number, H: number, rootEnd: number, fruitCount: number): Scene {
+function generate(W: number, H: number, rootEnd: number, targets: Anchor[]): Scene {
   const rnd = mulberry32(M.seed);
-  const cx = W / 2;
-  const out: Scene = { paths: [], pads: [], leaves: [], blobs: [], copperEnd: 0, greenStart: 0, fruitAnchors: [] };
-  const tips: Anchor[] = [];
+  const out: Scene = { paths: [], pads: [], leaves: [], copperEnd: 0, greenStart: 0 };
   const topMargin = 12;
   const edge = Math.max(4, W * 0.008);
   const jit = (a: number) => (rnd() - 0.5) * a;
 
-  // copper -> green resolves quickly: copper through the first ~40% of the
-  // roots, fully green just after the roots reach the trunk.
-  const copperEnd = rootEnd * 0.42;
-  const greenStart = rootEnd + Math.min((H - rootEnd) * 0.08, 150);
-  out.copperEnd = copperEnd;
-  out.greenStart = greenStart;
+  // ---- the tree's axis: a slender trunk hugging the right edge -------------
+  // Anchored to the measured card corners so branch reach stays consistent at
+  // any viewport; falls back to a fixed corridor before the cards exist.
+  const edgeMargin = clamp(W * 0.03, 22, 56);
+  const corridor = clamp(W * 0.06, 44, 128);
+  const cardsRight = targets.length
+    ? Math.max(...targets.map((t) => t.x))
+    : W - clamp(W * 0.16, 96, 260);
+  const trunkX = Math.min(W - edgeMargin, cardsRight + corridor);
 
+  // copper roots resolve to green just below the collar
+  out.copperEnd = rootEnd * 0.5;
+  out.greenStart = rootEnd + Math.min((H - rootEnd) * 0.06, 120);
+
+  const collarY = rootEnd;
+  // slimmer stem on narrow viewports so the sapling keeps its skinny look
+  const trunkW = M.trunkWidth * clamp(W / 1000, 0.72, 1);
+  const lowestCard = targets.length ? Math.max(...targets.map((t) => t.y)) : collarY + (H - collarY) * 0.45;
+  // the leader runs deep into the open ground at the page foot
+  const tipY = clamp(lowestCard + clamp(H * 0.22, 280, 640), collarY + 300, Math.max(collarY + 320, H - 60));
+  const curlZone = 90;
+  const swayA = clamp(W * 0.004, 2.5, 6);
+  // the trunk's centerline: a gentle sway, curling slightly at the leader tip
+  const trunkAt = (y: number) => {
+    let x = trunkX + swayA * Math.sin(y * 0.011 + 1.35);
+    if (y > tipY - curlZone) x -= (y - (tipY - curlZone)) * 0.11;
+    return x;
+  };
+
+  // ---- leaves & PCB components ---------------------------------------------
   const leafColor = (y: number): { col: string; accent: boolean } => {
-    if (y < copperEnd) return { col: COL.copperDeep, accent: false };
+    if (y < out.copperEnd) return { col: COL.copperDeep, accent: false };
     const r = rnd();
     if (r < M.accentMix * 0.5) return { col: COL.amberHex, accent: true };
     if (r < M.accentMix) return { col: COL.orangeHex, accent: true };
     return { col: COL.greenHex, accent: false };
   };
-  const mkLeaf = (x: number, y: number, ry: number, style: "blade" | CompStyle, forceCol?: string): Leaf => {
+  const mkLeaf = (x: number, y: number, ry: number, forceCol?: string, size?: number, op?: number): Leaf => {
     const c = forceCol ? { col: forceCol, accent: false } : leafColor(y);
-    return { cx: x, cy: y, ry, style, col: c.col, s: 3 + rnd() * 1.6, rot: rnd() * 60 - 30, accent: c.accent, sway: 2.5 + rnd() * 4, dur: 3.2 + rnd() * 3.2, del: 0.4 + rnd() * 3 };
+    return {
+      cx: x, cy: y, ry, style: "blade", col: c.col,
+      s: size ?? 3 + rnd() * 1.6, rot: rnd() * 60 - 30, accent: c.accent,
+      sway: 2.5 + rnd() * 4, dur: 3.2 + rnd() * 3.2, del: 0.4 + rnd() * 3, op,
+    };
   };
-
-  // ---- PCB vias & solder junctions that ride the roots (replace foliage) ----
-  // Copper/amber palette; both shapes are radial, so no rotation needed.
   const compStyle = (): CompStyle => (rnd() < 0.62 ? "via" : "junction");
   const compCol = () => {
     const r = rnd();
@@ -129,127 +123,36 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
     if (r < 0.96) return COL.orangeHex;
     return COL.greenHex;
   };
-  const mkComp = (x: number, y: number, ry: number, style?: CompStyle, col?: string) =>
+  const mkComp = (x: number, y: number, ry: number, style?: CompStyle, col?: string, size?: number) =>
     out.leaves.push({
       cx: x, cy: y, ry,
       style: style ?? compStyle(),
       col: col ?? compCol(),
-      s: 3 + rnd() * 1.8,
+      s: size ?? 3 + rnd() * 1.8,
       rot: 0,
       accent: false, sway: 0, dur: 0, del: 0,
     });
 
-  // ---- Bold tapering taproot: a shorter, wider, mirror-balanced fan that
-  // converges into the collar node. Roots leave the collar with a natural flare
-  // (no tight bundle) and taper hard to fine hairs; PCB vias ride each root.
-  const halfW = W / 2 - edge;
-  const rootHeight = Math.max(160, Math.min(rootEnd - topMargin - 8, W * 0.44));
-  const rootTop = rootEnd - rootHeight;
-  const nPairs = Math.round(clamp(W / 400, 2, 3));
-  // Every root base sits right on the thin trunk line so the vines converge to a
-  // point and blend into it (no wide cone), the same on desktop and mobile.
-  const baseSpread = M.trunkWidth * 0.35;
-
-  type Pt = { x: number; y: number };
-  type Seg = { ax: number; ay: number; bx: number; by: number; w: number; kind: "root" | "hair" };
-  type Sink = { segs: Seg[]; comps: Pt[] };
-
-  const cubicPts = (p0: Pt, c1: Pt, c2: Pt, p3: Pt, n: number): Pt[] => {
+  // ---- shared curve/taper machinery -----------------------------------------
+  const quadPts = (p0: Pt, c: Pt, p1: Pt, n: number): Pt[] => {
     const pts: Pt[] = [];
     for (let i = 0; i <= n; i++) {
       const t = i / n, m = 1 - t;
       pts.push({
-        x: m * m * m * p0.x + 3 * m * m * t * c1.x + 3 * m * t * t * c2.x + t * t * t * p3.x,
-        y: m * m * m * p0.y + 3 * m * m * t * c1.y + 3 * m * t * t * c2.y + t * t * t * p3.y,
+        x: m * m * p0.x + 2 * m * t * c.x + t * t * p1.x,
+        y: m * m * p0.y + 2 * m * t * c.y + t * t * p1.y,
       });
     }
     return pts;
   };
-  const pushTaper = (sink: Sink, pts: Pt[], baseW: number, tipW: number, exp: number, pinch = 0) => {
+  const pushTaper = (sink: Sink, pts: Pt[], baseW: number, tipW: number, exp: number, pinch = 0, kind: Seg["kind"] = "root") => {
     for (let i = 0; i < pts.length - 1; i++) {
       const t = i / (pts.length - 2 || 1);
       let w = tipW + (baseW - tipW) * Math.pow(1 - t, exp);
-      // pinch the base thin so the vine blends into the thin trunk line at the collar
+      // pinch the base thin so a limb blends into the line it leaves from
       if (pinch > 0) w = Math.max(tipW, w * clamp(t / pinch, 0.35, 1));
-      sink.segs.push({ ax: pts[i].x, ay: pts[i].y, bx: pts[i + 1].x, by: pts[i + 1].y, w, kind: "root" });
+      sink.segs.push({ ax: pts[i].x, ay: pts[i].y, bx: pts[i + 1].x, by: pts[i + 1].y, w, kind });
     }
-  };
-  const viasAlong = (sink: Sink, pts: Pt[], pitch: number) => {
-    let acc = pitch * 0.55;
-    for (let i = 1; i < pts.length; i++) {
-      acc += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
-      if (acc >= pitch) { acc = 0; sink.comps.push({ x: pts[i].x, y: pts[i].y }); }
-    }
-  };
-  const tipHairs = (sink: Sink, pts: Pt[], n: number) => {
-    const tip = pts[pts.length - 1], pen = pts[pts.length - 2];
-    const ang = Math.atan2(tip.x - pen.x, pen.y - tip.y);
-    for (let h = 0; h < n; h++) {
-      const a = ang + (rnd() - 0.5) * deg(34);
-      const hl = 10 + rnd() * 14;
-      const hx = clamp(tip.x + Math.sin(a) * hl, edge * 0.5, W - edge * 0.5);
-      const hy = Math.max(topMargin - 4, tip.y - Math.abs(Math.cos(a)) * hl);
-      sink.segs.push({ ax: tip.x, ay: tip.y, bx: hx, by: hy, w: 0.8, kind: "hair" });
-    }
-  };
-  const fork = (sink: Sink, pts: Pt[], w: number, depthLeft: number, level: number) => {
-    if (depthLeft <= 0) return;
-    // Many small tendrils split off each root: more branch points along the
-    // first level, and they keep splitting one level deeper. Tendrils are thin
-    // and short so they read as a mossy haze of hairs, not as extra main roots.
-    const ts = level === 1 ? [0.32, 0.46, 0.6, 0.72, 0.84] : [0.52, 0.8];
-    for (const t of ts) {
-      if (level > 1 && rnd() < 0.14) continue;
-      const idx = clamp(Math.round(t * (pts.length - 1)), 1, pts.length - 2);
-      const base = pts[idx], prev = pts[idx - 1];
-      const bang = Math.atan2(base.x - prev.x, prev.y - base.y);
-      const na = bang + deg(18 + rnd() * 26) * (rnd() < 0.5 ? -1 : 1);
-      const clen = lerp(rootHeight * 0.13, rootHeight * 0.26, rnd()) * (1 - level * 0.12);
-      const tx = clamp(base.x + Math.sin(na) * clen, edge, W - edge);
-      const ty = clamp(base.y - Math.abs(Math.cos(na)) * clen, topMargin, rootEnd);
-      const cp = cubicPts(
-        base,
-        { x: base.x + Math.sin(bang) * clen * 0.3, y: base.y - Math.cos(bang) * clen * 0.3 },
-        { x: tx - Math.sin(na) * clen * 0.3, y: ty + clen * 0.1 },
-        { x: tx, y: ty }, 9,
-      );
-      const cw = Math.max(0.9, w * 0.5);
-      pushTaper(sink, cp, cw, 0.5, 1.6);
-      // vias only at the major (first-level) junctions, kept sparse
-      if (level === 1) {
-        sink.comps.push({ x: base.x, y: base.y });
-        viasAlong(sink, cp, clamp(rootHeight * 0.34, 130, 190));
-      }
-      tipHairs(sink, cp, 2 + Math.floor(rnd() * 3));
-      fork(sink, cp, cw, depthLeft - 1, level + 1);
-    }
-  };
-  const genMain = (sink: Sink, side: number, rank: number) => {
-    const r0 = rank / nPairs;                         // 0 center .. 1 outer
-    const u = side * r0;
-    const centrality = 1 - Math.abs(u);
-    const baseX = cx + side * baseSpread * Math.pow(r0, 0.7);
-    const tx = clamp(cx + side * Math.pow(r0, 0.62) * halfW * 0.94 + jit(W * 0.015), edge, W - edge);
-    const ty = rootTop + (1 - centrality) * (rootEnd - rootTop) * 0.42 + rnd() * (rootHeight * 0.05);
-    const reachY = rootEnd - ty;
-    const dom = rank <= 1;
-    const baseW = dom
-      ? lerp(M.trunkWidth * 1.5, M.trunkWidth * 1.1, r0)
-      : lerp(M.trunkWidth * 0.95, M.trunkWidth * 0.62, r0);
-    const dx = Math.abs(tx - baseX);
-    // leave the collar nearly vertical (so the vines stay bundled and merge into
-    // the trunk as one), then bend out to the splay higher up.
-    const pts = cubicPts(
-      { x: baseX, y: rootEnd },
-      { x: baseX + side * dx * 0.08, y: rootEnd - reachY * 0.34 },
-      { x: tx - side * dx * 0.28, y: ty + reachY * 0.12 },
-      { x: tx, y: ty }, 16,
-    );
-    pushTaper(sink, pts, baseW, 0.7, 1.6, 0.16);
-    viasAlong(sink, pts, clamp(rootHeight * 0.22, 95, 155));
-    tipHairs(sink, pts, 2 + Math.floor(rnd() * 3));
-    fork(sink, pts, baseW, dom ? 4 : 3, 1);
-    sink.comps.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y });
   };
   const flushSink = (sink: Sink) => {
     for (const s of sink.segs) {
@@ -261,149 +164,297 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
     }
     for (const c of sink.comps) mkComp(c.x, c.y, c.y);
   };
-  const mirrorSink = (sink: Sink): Sink => ({
-    segs: sink.segs.map((s) => ({ ...s, ax: W - s.ax, bx: W - s.bx })),
-    comps: sink.comps.map((c) => ({ x: W - c.x, y: c.y })),
+
+  // ---- ROOTS: an exposed inner-layer trace lattice across the top -----------
+  // (chosen concept R3). A field of hairline verticals drops from the page's
+  // top edge, tied by sparse horizontals and via'd at grid nodes; it dissolves
+  // leftward and downward until ONE bold trace survives, routes out of the
+  // field with 45° chamfered bends, and becomes the trunk at the collar.
+  {
+    const pitch = Math.round(clamp(W / 48, 22, 36));
+    const span = clamp(W * 0.5, 300, 880);
+    const x0 = Math.max(edge + 6, trunkX - span);
+    const yTop = topMargin;
+    const yMax = Math.max(yTop + 120, Math.min(collarY * 0.58, yTop + 330));
+    const bandH = yMax - yTop;
+    const field: Sink = { segs: [], comps: [] };
+
+    // vertical hairlines — denser and longer toward the trunk side
+    const colBot = new Map<number, number>();
+    for (let x = x0; x <= W - edge - 2; x += pitch) {
+      const t = (x - x0) / Math.max(1, W - edge - x0);
+      if (rnd() > 0.3 + t * 0.62) continue;
+      const yEnd = yTop + bandH * (0.25 + rnd() * 0.75) * (0.45 + t * 0.55);
+      field.segs.push({ ax: x, ay: yTop, bx: x, by: yEnd, w: 0.9, kind: "hair" });
+      colBot.set(x, yEnd);
+      // occasional 45° tail where a net was left unrouted
+      if (rnd() < 0.18) {
+        const sgn = pitch * 0.5 * (rnd() < 0.5 ? -1 : 1);
+        field.segs.push({ ax: x, ay: yEnd, bx: x + sgn, by: yEnd + Math.abs(sgn), w: 0.9, kind: "hair" });
+      }
+    }
+    // sparse horizontal ties between columns that reach that row
+    const colXs = [...colBot.keys()];
+    for (let y = yTop + pitch; y < yMax - pitch * 0.5; y += pitch) {
+      const ty = (y - yTop) / bandH;
+      if (rnd() > 0.62 - ty * 0.5) continue;
+      const rowCols = colXs.filter((cx2) => (colBot.get(cx2) ?? 0) >= y);
+      if (rowCols.length < 2) continue;
+      const ia = Math.floor(rnd() * (rowCols.length - 1));
+      const xa = rowCols[ia];
+      const xbPool = rowCols.slice(ia + 1);
+      const xb = xbPool[Math.floor(rnd() * xbPool.length)];
+      if (xb - xa < pitch) continue;
+      field.segs.push({ ax: xa, ay: y, bx: xb, by: y, w: 0.9, kind: "hair" });
+      if (rnd() < 0.3) mkComp(xa, y, y, "via", undefined, 2.1 + rnd() * 0.7);
+    }
+    // vias riding some verticals at grid rows
+    for (const cx2 of colXs) {
+      if (rnd() > 0.3) continue;
+      const bot = colBot.get(cx2)!;
+      const rows = Math.floor((bot - yTop) / pitch);
+      if (rows < 1) continue;
+      const vy = yTop + (1 + Math.floor(rnd() * rows)) * pitch;
+      if (vy < bot) mkComp(cx2, vy, vy, "via", undefined, 2.1 + rnd() * 0.7);
+    }
+    flushSink(field);
+
+    // survivor traces: constant-width nets escaping the field into the collar
+    const chamfer = (wp: Pt[], c: number): Pt[] => {
+      const res: Pt[] = [wp[0]];
+      for (let i = 1; i < wp.length - 1; i++) {
+        const p = wp[i], a = wp[i - 1], b = wp[i + 1];
+        const inL = Math.hypot(p.x - a.x, p.y - a.y) || 1;
+        const outL = Math.hypot(b.x - p.x, b.y - p.y) || 1;
+        const cc = Math.min(c, inL / 2, outL / 2);
+        res.push({ x: p.x - ((p.x - a.x) / inL) * cc, y: p.y - ((p.y - a.y) / inL) * cc });
+        res.push({ x: p.x + ((b.x - p.x) / outL) * cc, y: p.y + ((b.y - p.y) / outL) * cc });
+      }
+      res.push(wp[wp.length - 1]);
+      return res;
+    };
+    const trace = (wp: Pt[], w: number) => {
+      const s2: Sink = { segs: [], comps: [] };
+      const pts = chamfer(wp, Math.min(12, pitch * 0.45));
+      for (let i = 0; i < pts.length - 1; i++) {
+        s2.segs.push({ ax: pts[i].x, ay: pts[i].y, bx: pts[i + 1].x, by: pts[i + 1].y, w, kind: "root" });
+      }
+      flushSink(s2);
+    };
+    const snap = (v: number) => x0 + Math.round((v - x0) / pitch) * pitch;
+    const cx0 = trunkAt(collarY);
+
+    // the main survivor: across the field, then STRAIGHT down the very side
+    // into the collar — no low elbow (the side line IS the trunk's x already)
+    const y1 = yTop + bandH * 0.55;
+    const mx = clamp(snap(x0 + span * 0.52), x0, cx0 - pitch * 2);
+    trace([
+      { x: mx, y: yTop },
+      { x: mx, y: y1 },
+      { x: cx0, y: y1 },
+      { x: cx0, y: collarY },
+    ], trunkW * 0.85);
+    mkComp(mx, yTop + pitch, yTop + pitch, "via", COL.copper, 2.9);
+    mkComp(mx, y1, y1, "via", COL.copper, 2.5);
+    mkComp(cx0, collarY * 0.8, collarY * 0.8, "via", undefined, 2.4);
+
+    // a second net over the right shoulder, merging with a single 45° tap
+    if (W - edge - cx0 > pitch * 1.2) {
+      const bx = clamp(snap(Math.min(W - edge - pitch * 0.5, trunkX + (W - trunkX) * 0.5)), cx0 + pitch * 0.75, W - edge);
+      const yb = Math.min(yMax + pitch * 1.5, collarY * 0.8 - pitch);
+      trace([
+        { x: bx, y: yTop },
+        { x: bx, y: yb },
+        { x: cx0, y: yb + (bx - cx0) },
+      ], 2.1);
+      mkComp(cx0, yb + (bx - cx0), yb + (bx - cx0), "junction", COL.copper, 2.6);
+      mkComp(bx, yTop + pitch * 0.5, yTop, "via", COL.copperDeep, 2.2);
+    }
+
+    // on wide screens, a long feeder crosses the field from the far left
+    if (W > 980) {
+      const y3 = yTop + bandH * 0.85;
+      const lx = snap(x0 + pitch);
+      trace([
+        { x: lx, y: yTop + pitch },
+        { x: lx, y: y3 },
+        { x: cx0 - pitch, y: y3 },
+        { x: cx0, y: y3 + pitch },
+      ], 1.6);
+      mkComp(lx, yTop + pitch, yTop + pitch, "via", COL.copperDeep, 2.3);
+      mkComp(cx0, y3 + pitch, y3 + pitch, "junction", COL.copper, 2.4);
+    }
+
+    // solder joint where the surviving trace becomes the trunk
+    mkComp(cx0, collarY, collarY, "junction", COL.amberHex);
+  }
+
+  // ---- TRUNK: one slender stem down the right side --------------------------
+  {
+    const step = 24;
+    const pts: Pt[] = [];
+    for (let y = collarY; y < tipY; y += step) pts.push({ x: trunkAt(y), y });
+    pts.push({ x: trunkAt(tipY), y: tipY });
+    for (let i = 0; i < pts.length - 1; i++) {
+      const t = i / (pts.length - 2 || 1);
+      const w = 1.0 + (trunkW - 1.0) * Math.pow(1 - t, 1.15);
+      out.paths.push({
+        d: `M${rr(pts[i].x)} ${rr(pts[i].y)} L${rr(pts[i + 1].x)} ${rr(pts[i + 1].y)}`,
+        w, len: Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y),
+        ry: pts[i].y, kind: "trunk",
+      });
+    }
+    // quiet junction dots + the odd pad punctuating the stem (static, no blink)
+    for (let y = collarY + 170; y < tipY - 80; y += 300 + rnd() * 160) {
+      mkComp(trunkAt(y), y, y, rnd() < 0.6 ? "junction" : "via", rnd() < 0.72 ? COL.greenHex : COL.amberHex);
+      if (rnd() < 0.3) out.pads.push({ cx: trunkAt(y + 60), cy: y + 60, ry: y + 60, size: 2.2 });
+    }
+  }
+
+  // ---- LEFT LIMBS: one branch per featured card, leaf on the corner ---------
+  const sorted = [...targets].sort((a, b) => a.y - b.y);
+  const branchOys: number[] = [];
+  sorted.forEach((tg, i) => {
+    const sink: Sink = { segs: [], comps: [] };
+    const leafX = tg.x + 9, leafY = tg.y - 8;
+    const reach = Math.max(24, trunkX - leafX);
+    const oy = leafY - clamp(reach * 0.5, 30, 64) - (i % 2) * 10;
+    branchOys.push(oy);
+    const O = { x: trunkAt(oy), y: oy };
+    // leaves the trunk steeply, flattens into the corner (flipped-tree limb)
+    const pts = quadPts(O, { x: O.x * 0.72 + leafX * 0.28, y: leafY + 2 }, { x: leafX + 2, y: leafY }, 12);
+    pushTaper(sink, pts, clamp(reach * 0.02 + 2.0, 2.2, 3.0), 0.85, 1.35, 0.1, "branch");
+    flushSink(sink);
+    // a couple of small leaves riding the limb
+    out.leaves.push(mkLeaf(pts[5].x + jit(6), pts[5].y - 4 - rnd() * 4, oy));
+    if (i % 2 === 0) out.leaves.push(mkLeaf(pts[8].x + jit(5), pts[8].y + 4 + rnd() * 3, oy));
+    if (reach > 160) out.leaves.push(mkLeaf(pts[3].x, pts[3].y - 3 - rnd() * 4, oy));
+    // solder joint at the trunk, pulsing junction under the corner leaf
+    mkComp(O.x, O.y, oy, "junction", COL.greenHex);
+    mkComp(leafX, leafY, oy, "junction", COL.greenHex);
+    // the corner leaf itself — bigger, glowing, gust-reactive
+    out.leaves.push({
+      cx: leafX, cy: leafY, ry: oy, style: "blade",
+      col: i % 3 === 1 ? COL.amberHex : COL.greenHex,
+      s: 5.8 + rnd() * 0.8, rot: -28 + jit(12), accent: true,
+      sway: 3 + rnd() * 3, dur: 3.4 + rnd() * 2.6, del: 0.3 + rnd() * 2,
+    });
   });
 
-  // center root (unmirrored), then right-side mains mirrored to the left so the
-  // fan is perfectly balanced behind the terminal.
-  const center: Sink = { segs: [], comps: [] };
-  genMain(center, 0, 0);
-  flushSink(center);
-  for (let r = 1; r <= nPairs; r++) {
-    const rs: Sink = { segs: [], comps: [] };
-    genMain(rs, 1, r);
-    flushSink(rs);
-    flushSink(mirrorSink(rs));
+  // ---- RIGHT LIMBS: short stubs toward the page edge -------------------------
+  const room = W - edge - trunkX;
+  if (room >= 12) {
+    const stubYs: number[] = [];
+    if (branchOys.length) {
+      stubYs.push(branchOys[0] - 64 - rnd() * 30);
+      for (let i = 0; i < branchOys.length - 1; i++) stubYs.push((branchOys[i] + branchOys[i + 1]) / 2 + jit(24));
+      // (below the last card the crown block takes over — limbs on both sides)
+    } else {
+      for (let y = collarY + 160; y < tipY - 90; y += 190 + rnd() * 90) stubYs.push(y);
+    }
+    stubYs.forEach((sy0, k) => {
+      const sy = clamp(sy0, collarY + 60, tipY - 50);
+      const sink: Sink = { segs: [], comps: [] };
+      const O = { x: trunkAt(sy), y: sy };
+      const L = clamp(room * (0.5 + rnd() * 0.3), 10, 48);
+      const E = { x: Math.min(W - edge, O.x + L), y: sy + 12 + rnd() * 14 };
+      const pts = quadPts(O, { x: O.x + L * 0.45, y: E.y + 3 }, E, 7);
+      pushTaper(sink, pts, 1.7, 0.5, 1.35, 0.12, "branch");
+      flushSink(sink);
+      out.leaves.push(mkLeaf(E.x + 2, E.y + jit(3), sy, undefined, 3 + rnd() * 1.2));
+      if (k % 2 === 0) {
+        out.leaves.push(mkLeaf(pts[4].x + 1, pts[4].y - 4, sy));
+        mkComp(O.x, O.y, sy, "junction", COL.greenHex);
+      }
+    });
   }
 
-  // ---- trunk + spreading canopy ----
-  const canopyStartY = rootEnd + Math.min(H * 0.05, 70);
-  const trunk = pcbSeg(cx, rootEnd, cx, canopyStartY, "orthogonal");
-  out.paths.push({ d: trunk.d, w: M.trunkWidth, len: trunk.len, ry: rootEnd, kind: "trunk" });
+  // ---- below the cards the sapling fills out: a leafy crown on both sides ---
+  // (the flipped tree's top). Limbs alternate sides, longer on the open left,
+  // shrinking toward the leader tip so the silhouette tapers to a point.
+  {
+    const crownTop = lowestCard + 70;
+    const crownBot = tipY - 40;
+    if (crownBot - crownTop > 80) {
+      // leaves come in little fanned clusters, like the reference sapling
+      const tuft = (x: number, y: number, ry: number, n: number, s0: number) => {
+        for (let k = 0; k < n; k++) {
+          out.leaves.push(mkLeaf(x + jit(10), y + jit(8), ry, undefined, s0 + rnd() * 1.4, 0.62 + rnd() * 0.28));
+        }
+      };
+      // only a handful of limbs, with irregular sides and lengths — the mass
+      // lives in the foliage, so the silhouette stays loose, not a tiered cone
+      let side = rnd() < 0.5 ? -1 : 1;
+      for (let y = crownTop + rnd() * 40; y < crownBot; y += 92 + rnd() * 48) {
+        const prog = (y - crownTop) / (crownBot - crownTop);
+        const sink: Sink = { segs: [], comps: [] };
+        const O = { x: trunkAt(y), y };
+        const maxL = side < 0
+          ? clamp(W * 0.18, 100, 300)
+          : Math.max(12, W - edge - O.x);
+        const L = Math.max(16, maxL * (0.35 + rnd() * 0.55) * (1 - prog * 0.35));
+        const E = { x: clamp(O.x + side * L, edge, W - edge), y: y + 16 + rnd() * 22 + L * 0.12 };
+        const pts = quadPts(O, { x: O.x + side * L * 0.42, y: E.y + 4 }, E, 9);
+        pushTaper(sink, pts, clamp(1.6 + L * 0.01, 1.8, 2.6), 0.55, 1.35, 0.12, "branch");
+        flushSink(sink);
+        // generous leaf clusters along the limb and at its tip
+        tuft(pts[3].x, pts[3].y - 3, y, 3, 3.2);
+        tuft(pts[5].x, pts[5].y - 4, y, 3, 3.4);
+        tuft(pts[7].x, pts[7].y + 3, y, 3, 3.3);
+        tuft(E.x + side * 4, E.y, y, 4, 3.6);
+        if (rnd() < 0.3) mkComp(O.x, O.y, y, "junction", COL.greenHex);
+        side = rnd() < 0.72 ? -side : side;            // mostly alternate, sometimes repeat
+      }
+      // leaf sprigs hugging the stem between limbs — foliage without branches
+      for (let y = crownTop + 26; y < tipY - 30; y += 44 + rnd() * 34) {
+        const sgn = rnd() < 0.5 ? -1 : 1;
+        tuft(trunkAt(y) + sgn * (5 + rnd() * 9), y + jit(6), y, 2 + (rnd() < 0.5 ? 1 : 0), 3.1);
+      }
+    }
+  }
 
-  // The canopy is a LUSH mangrove crown: a dense green fan sprouting DOWN from
-  // the trunk to fill the featured-work area with foliage. The project cards
-  // sit over the top of it. Denser near the trunk, broadening as it descends.
-  // leave a band of open ground beneath the crown for leaves to drift through.
-  const openGround = clamp(H * 0.24, 260, 640);
-  const canopyBottom = Math.min(
-    H - openGround,
-    canopyStartY + clamp(H - canopyStartY - openGround, 380, 1200),
-  );
-  const canopyH = canopyBottom - canopyStartY;
-  const cbudget = { n: 0 };
-  const canopySpines: { x: number; y: number }[][] = [];
+  // ---- the leader tip: a small crown of leaves in the open ground -----------
+  {
+    const tp = { x: trunkAt(tipY), y: tipY };
+    const crown: [number, number, number, string, number][] = [
+      [-9, 4, -40, COL.greenHex, 4.4],
+      [7, 9, 26, COL.greenHex, 4.2],
+      [-3, 15, -70, COL.greenHex, 4.5],
+      [10, -5, 50, COL.amberHex, 3.8],
+      [-14, -3, -12, COL.greenHex, 3.5],
+      [16, 3, 68, COL.greenHex, 3.9],
+      [-8, 24, -28, COL.greenHex, 4.1],
+    ];
+    for (const [dx, dy, rot, col, s] of crown) {
+      const lf = mkLeaf(tp.x + dx, tp.y + dy, tipY, col, s, 0.82);
+      lf.rot = rot;
+      out.leaves.push(lf);
+    }
+    out.leaves.push(mkLeaf(trunkAt(tipY - 58) + 8, tipY - 56, tipY - 58, COL.greenHex, 3.6, 0.7));
+    out.leaves.push(mkLeaf(trunkAt(tipY - 120) - 8, tipY - 118, tipY - 120, COL.orangeHex, 3.2, 0.7));
+    mkComp(tp.x, tp.y, tipY, "via", COL.greenHex);
+  }
+
+  // ---- a handful of leaves drifting off the tree into the open ground -------
+  const driftTop = collarY + 220;
+  const nDrift = Math.round(clamp((W * (H - driftTop)) / 140000, 8, 22));
   const warmCol = () => {
     const r = rnd();
-    return r < 0.42 ? COL.amberHex : r < 0.74 ? COL.orangeHex : r < 0.87 ? COL.copper : COL.greenHex;
+    return r < 0.42 ? COL.amberHex : r < 0.74 ? COL.orangeHex : COL.greenHex;
   };
-  const canopyLeaf = (x: number, y: number, warm?: boolean) =>
-    out.leaves.push(mkLeaf(clamp(x, 4, W - 4), clamp(y, canopyStartY - 8, canopyBottom + 40), y, "blade", warm ? warmCol() : undefined));
-
-  // The crown is a real branching tree: trunk -> boughs -> branches, clothed in
-  // leaves. This is the TREE STRUCTURE; the blurred glow + scattered leaves
-  // below only add body around it.
-  // The crown scales with WIDTH (like the roots), not just canopy height. On a
-  // tall, narrow viewport canopyH dwarfs the width, so keying bough length +
-  // splay off canopyH alone made the boughs overshoot the sides and pile up
-  // against the clamp walls — the "squished" crown. crownHalf now stays inside
-  // the screen, and both the splay and the bough length are bounded by it, so
-  // the crown fans out to fill the width proportionally instead of ramming the
-  // edges. (Desktop was already width-safe, so it's left essentially unchanged.)
-  const crownHalf = W * 0.46;                         // half-width the crown fills (inside the screen)
-  const loX = clamp(cx - crownHalf, edge, W);
-  const hiX = clamp(cx + crownHalf, 0, W - edge);
-  // a tall, narrow crown tips its splay toward vertical (spend length on depth,
-  // not width); a wide crown keeps the full splay.
-  const splay0 = deg(M.branchSplay) * clamp((crownHalf / canopyH) * 2.5, 0.5, 1);
-  const boughLen = Math.min(canopyH * 0.2, crownHalf * 1.8);
-  const CANOPY_LEVELS = 4;
-
-  function growBranch(x: number, y: number, angle: number, len: number, width: number, level: number, spine: { x: number; y: number }[] | null) {
-    if (cbudget.n++ > 520) return;
-    const ex = clamp(x + Math.sin(angle) * len, loX, hiX);
-    const ey = y + Math.abs(Math.cos(angle)) * len;   // always downward
-    const off = len * 0.16 * (0.4 + M.metamorphOrganic) * (Math.sin(angle) >= 0 ? 1 : -1) * (rnd() < 0.5 ? 1 : 0.6);
-    const seg = curveSeg(x, y, ex, ey, off);          // parent-first -> grows downward
-    out.paths.push({ d: seg.d, w: width, len: seg.len, ry: Math.min(y, ey), kind: "branch" });
-    if (spine) spine.push({ x: ex, y: ey });
-    if (rnd() < M.padDensity * 0.3) out.pads.push({ cx: x, cy: y, ry: y, size: clamp(width * 0.7, 1.6, 3) });
-    // a leaf or two clothing the limb (sparse, so the branches stay legible)
-    if (level >= 2 && rnd() < M.leafDensity * 0.55) {
-      canopyLeaf(lerp(x, ex, 0.4 + rnd() * 0.5) + jit(13), lerp(y, ey, 0.4 + rnd() * 0.5) + jit(9));
-    }
-    if (level >= CANOPY_LEVELS || width < 0.8) {
-      tips.push({ x: ex, y: ey });                      // a real branch tip a fruit can hang from
-      const nleaf = 1 + (rnd() < 0.5 ? 1 : 0);          // small leaf tuft at the tip
-      for (let i = 0; i < nleaf; i++) canopyLeaf(ex + jit(16), ey + jit(12));
-      return;
-    }
-    const kids = rnd() < 0.4 ? 3 : 2;
-    const deep = level / CANOPY_LEVELS;
-    for (let k = 0; k < kids; k++) {
-      const kf = (k / (kids - 1)) * 2 - 1;              // -1..1
-      // spread wide early, curl toward straight-down deeper -> a rounded crown.
-      // A branch already near the crown edge stops splaying outward (spreadRoom)
-      // and is pulled back toward vertical (restore), so the crown self-bounds to
-      // ~crownHalf and fans across the width instead of piling up at the sides.
-      const nx = (ex - cx) / crownHalf;                 // -1 .. 1 within the crown
-      const spreadRoom = clamp(1 - Math.max(0, Math.abs(nx) - 0.4) / 0.6, 0.05, 1);
-      const restore = Math.sign(nx) * splay0 * Math.max(0, Math.abs(nx) - 0.55) * 2.6;
-      const na = clamp(angle * (0.9 - deep * 0.3) + kf * splay0 * (0.92 - deep * 0.4) * spreadRoom - restore, -1.4, 1.4);
-      growBranch(ex, ey, na, len * (0.74 + rnd() * 0.08), width * 0.7, level + 1, k === 0 ? spine : null);
-    }
+  for (let i = 0; i < nDrift; i++) {
+    const y = lerp(driftTop, H - 30, Math.pow(rnd(), 0.7));
+    const x = clamp(lerp(Math.max(edge, trunkX - W * 0.32), W - edge, rnd()), edge, W - edge);
+    out.leaves.push(mkLeaf(x, y, y, warmCol(), 2.4 + rnd()));
   }
-
-  // the trunk splits into a few main boughs that branch out into the crown
-  const baseCount = 5;
-  for (let bi = 0; bi < baseCount; bi++) {
-    const f0 = (bi / (baseCount - 1)) * 2 - 1;          // -1..1
-    const csp: { x: number; y: number }[] = [{ x: cx, y: canopyStartY }];
-    growBranch(cx, canopyStartY, f0 * splay0 * 0.85, boughLen, M.trunkWidth * 0.82, 1, csp);
-    canopySpines.push(csp);
-  }
-
-
-  // Pick `fruitCount` real branch tips, spread evenly across the crown, for the
-  // fruit-cards to hang from. Each target x claims the nearest un-used tip.
-  if (fruitCount > 0 && tips.length) {
-    const band = tips.filter((t) => t.y > canopyStartY + canopyH * 0.12 && t.y < canopyStartY + canopyH * 0.72);
-    const pool = band.length >= fruitCount ? band : tips;
-    const used = new Set<number>();
-    const need = Math.min(fruitCount, pool.length);
-    for (let i = 0; i < need; i++) {
-      const tx = lerp(edge + W * 0.05, W - edge - W * 0.05, need === 1 ? 0.5 : i / (need - 1));
-      let best = -1, bestD = Infinity;
-      for (let j = 0; j < pool.length; j++) {
-        if (used.has(j)) continue;
-        const d = Math.abs(pool[j].x - tx);
-        if (d < bestD) { bestD = d; best = j; }
-      }
-      if (best >= 0) { used.add(best); out.fruitAnchors.push(pool[best]); }
-    }
-    out.fruitAnchors.sort((a, b) => a.x - b.x);
-  }
-
-  // falling leaves: warm leaves drifting down from the crown, through the open
-  // ground below the tree, fanning wider and gathering denser toward the foot
-  // of the page. Unlike canopy leaves these are free to fall past the crown all
-  // the way to the bottom edge.
-  const fallLeaf = (x: number, y: number) =>
-    out.leaves.push(mkLeaf(clamp(x, 4, W - 4), y, y, "blade", warmCol()));
-  const fallTop = canopyStartY + canopyH * 0.26;
-  const fallBottom = H - 24;                            // down to the page foot
-  const fallH = Math.max(80, fallBottom - fallTop);
-  const fallN = Math.round(clamp((W * fallH) / 6200, 160, 820) * M.leafDensity);
-  for (let i = 0; i < fallN; i++) {
-    const t = Math.pow(rnd(), 0.62);                   // biased low, but fills the drop
-    const y = lerp(fallTop, fallBottom, t);
-    const spread = lerp(W * 0.2, W * 0.72, t);         // fan out as they fall
-    const nx = (rnd() - 0.5) * 2;
-    const x = clamp(cx + nx * spread, edge, W - edge);
-    if (Math.abs(nx) > 0.6 && rnd() < 0.4) continue;   // thin the far edges
-    fallLeaf(x, y);                                    // warm autumn tones
+  // extra leaves settling around the crown below the cards, clustered near the
+  // leader so they read as its foliage rather than confetti
+  const crownDrift = Math.round(clamp(W / 55, 14, 30));
+  for (let i = 0; i < crownDrift; i++) {
+    const y = lerp(lowestCard + 60, Math.min(tipY + 90, H - 30), rnd());
+    const spread = clamp(W * 0.22, 130, 340) * (0.3 + rnd() * 0.7);
+    const x = clamp(trunkAt(Math.min(y, tipY)) + (rnd() * 2 - 1.15) * spread, edge, W - edge);
+    out.leaves.push(mkLeaf(x, y, y, warmCol(), 2.8 + rnd() * 1.5));
   }
 
   return out;
@@ -411,12 +462,9 @@ function generate(W: number, H: number, rootEnd: number, fruitCount: number): Sc
 
 function LeafNode({ lf }: { lf: Leaf }) {
   const x = rr(lf.cx), y = rr(lf.cy), s = lf.s;
-  // PCB nodes: a plated via-ring or a solid solder junction. A lit core hops
-  // node-to-node (relay current) once the node has grown in.
+  // PCB nodes: a plated via-ring or a solid solder junction — quiet, static
+  // hardware (no blinking cores).
   if (lf.style !== "blade") {
-    const RELAY_DUR = 2.1;                            // seconds — matches @keyframes tg-hop
-    const phase = (((lf.cy % 260) / 260) + 1) % 1;    // phased by y -> a downward wave
-    const coreHot = lf.col === COL.greenHex ? "#d3e8b4" : "#f4d7a0";
     return (
       <g className="tg-rnode" data-ry={Math.round(lf.ry)} style={{ color: lf.col }}>
         {lf.style === "via" ? (
@@ -430,21 +478,12 @@ function LeafNode({ lf }: { lf: Leaf }) {
             <circle cx={x} cy={y} r={rr(s * 0.6)} fill={lf.col} />
           </>
         )}
-        <circle
-          className="tg-via-core"
-          cx={x}
-          cy={y}
-          r={rr(s * (lf.style === "via" ? 0.62 : 0.5))}
-          fill={coreHot}
-          style={{ ["--phase" as string]: `${(-phase * RELAY_DUR).toFixed(2)}s` }}
-        />
       </g>
     );
   }
-  // blade leaf: a single cheap almond (foliage is dense, so one element each).
-  // Rotation + drift ride on CSS custom properties so they compose cleanly.
-  // The wrapping <g> carries the live mouse-repulsion translate (see the
-  // pointer effect below) so it stacks on top of the CSS drift, not against it.
+  // blade leaf: a single cheap almond (one element each). Rotation + drift ride
+  // on CSS custom properties; the wrapping <g> carries the live gust translate
+  // (see the pointer effect below) so it stacks on the CSS flutter.
   return (
     <g className="tg-leaf-wrap">
       <ellipse
@@ -455,7 +494,7 @@ function LeafNode({ lf }: { lf: Leaf }) {
         rx={rr(s * 1.5)}
         ry={rr(s * 0.56)}
         fill={lf.col}
-        fillOpacity={0.5}
+        fillOpacity={lf.op ?? (lf.accent ? 0.85 : 0.5)}
         style={{
           ["--rot" as string]: `${rr(lf.rot)}deg`,
           ["--dsway" as string]: `${rr(lf.sway)}px`,
@@ -467,16 +506,11 @@ function LeafNode({ lf }: { lf: Leaf }) {
   );
 }
 
-export default function CircuitVines({
-  fruitCount = 0,
-  onAnchors,
-}: {
-  fruitCount?: number;
-  onAnchors?: (anchors: Anchor[]) => void;
-} = {}) {
+export default function CircuitVines() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [dims, setDims] = useState({ w: 0, h: 0, heroH: 0 });
+  const [targets, setTargets] = useState<Anchor[]>([]);
 
   useEffect(() => {
     const node = wrapRef.current;
@@ -497,15 +531,50 @@ export default function CircuitVines({
     return () => ro.disconnect();
   }, []);
 
-  const scene = useMemo(
-    () => (dims.w > 0 && dims.h > 0 ? generate(dims.w, dims.h, dims.heroH || dims.h * 0.32, fruitCount) : null),
-    [dims.w, dims.h, dims.heroH, fruitCount],
-  );
-
-  // report the branch-tip anchors up so the fruit-cards can hang from them
+  // Measure the featured cards' top-right corners (shared coordinate space):
+  // each corner becomes a branch target with a leaf pinned on it.
   useEffect(() => {
-    if (scene && onAnchors) onAnchors(scene.fruitAnchors);
-  }, [scene, onAnchors]);
+    const node = wrapRef.current;
+    if (!node) return;
+    let raf = 0;
+    const measure = () => {
+      const wrapRect = node.getBoundingClientRect();
+      const next = Array.from(document.querySelectorAll<HTMLElement>("[data-grove-card]")).map((el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.right - wrapRect.left, y: r.top - wrapRect.top };
+      });
+      setTargets((prev) =>
+        prev.length === next.length &&
+        prev.every((p, i) => Math.abs(p.x - next[i].x) < 2 && Math.abs(p.y - next[i].y) < 2)
+          ? prev
+          : next,
+      );
+    };
+    const queue = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(measure);
+    };
+    queue();
+    const ro = new ResizeObserver(queue);
+    ro.observe(document.documentElement);
+    document.querySelectorAll<HTMLElement>("[data-grove-card]").forEach((el) => ro.observe(el));
+    window.addEventListener("resize", queue, { passive: true });
+    // catch late reflows (web fonts, media metadata) that shift the cards
+    const timers = [250, 900, 1800].map((t) => window.setTimeout(queue, t));
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", queue);
+      timers.forEach((id) => window.clearTimeout(id));
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  const targetKey = targets.map((t) => `${Math.round(t.x)},${Math.round(t.y)}`).join(";");
+  const scene = useMemo(
+    () => (dims.w > 0 && dims.h > 0 ? generate(dims.w, dims.h, dims.heroH || dims.h * 0.32, targets) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dims.w, dims.h, dims.heroH, targetKey],
+  );
 
   // Growth reveals TOP -> BOTTOM: on load a front descends from the top over
   // ~2s; afterwards scrolling extends the front further down (one-way).
@@ -799,7 +868,7 @@ export default function CircuitVines({
               ))}
           </g>
 
-          {/* bold mains / trunk / canopy branches */}
+          {/* bold mains / trunk / limbs */}
           <g className="tg-roots-branches" strokeLinecap="round" strokeLinejoin="round">
             {scene.paths
               .filter((p) => p.kind === "root" || p.kind === "trunk" || p.kind === "branch")

@@ -370,7 +370,9 @@ body::before {
   display: inline-block;
 }
 
-/* Blinking terminal cursor */
+/* Terminal cursor: blinks twice on mount, then rests as a steady block.
+   (The resting prompt mounts fresh when the boot sequence finishes, so it
+   gets its own two blinks and then holds.) */
 .tg-cursor {
   display: inline-block;
   width: 0.62em;
@@ -378,7 +380,7 @@ body::before {
   transform: translateY(0.16em);
   background: var(--tg-green);
   margin-left: 2px;
-  animation: tg-blink 1.05s steps(1) infinite;
+  animation: tg-blink 1.05s steps(1) 2;
 }
 
 @keyframes tg-blink {
@@ -420,13 +422,13 @@ body::before {
   to { stroke-dashoffset: 0; }
 }
 
-/* Via-ring "leaves" bloom + pulse once their branch has grown. */
+/* Via-ring "leaves" bloom in once their branch has grown — then stay quiet
+   (static hardware, no pulsing cores). */
 .tg-rnode {
   transform-box: fill-box;
   transform-origin: center;
   opacity: 0;
 }
-/* Via rings stay calm; the relay current is carried by the lit cores below. */
 .tg-rnode.grown {
   animation: tg-node-in 0.5s ease-out forwards;
 }
@@ -434,24 +436,6 @@ body::before {
 @keyframes tg-node-in {
   from { opacity: 0; transform: scale(0); }
   to { opacity: 1; transform: scale(1); }
-}
-
-/* Relay: a lit core hops node-to-node down the roots once each via has grown. */
-.tg-via-core {
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.tg-rnode.grown .tg-via-core {
-  animation: tg-hop 2.1s ease-out infinite;
-  animation-delay: var(--phase, 0s);
-}
-
-@keyframes tg-hop {
-  0% { opacity: 0; transform: scale(0.7); }
-  7% { opacity: 0.95; transform: scale(1); }
-  26% { opacity: 0; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1); }
 }
 
 /* Accent leaves get a soft glow (color set inline per node) */
@@ -571,7 +555,6 @@ body::before {
   .tg-rleaf { animation: none; opacity: 1; transform: rotate(var(--rot, 0deg)) scale(1); }
   .tg-roots-canopy { animation: none; }
   .tg-rpad { animation: none; opacity: 0.7; }
-  .tg-via-core { animation: none; opacity: 0; }
   .tg-cursor { animation: none; }
   .tg-pop { animation: none; }
   .tg-orchard-stem { animation: none; stroke-dashoffset: 0; }
@@ -658,6 +641,64 @@ body::before {
 .tg-orchard-node.is-active .tg-pill-dot { background: var(--tg-bg); box-shadow: none; }
 .tg-pill-label { max-width: 148px; overflow: hidden; text-overflow: ellipsis; }
 .tg-pill:focus-visible { outline: 2px solid var(--tg-amber); outline-offset: 2px; }
+
+/* ============================================================
+   Featured "grove": wide horizontal project cards stacked down
+   the page. The sapling's trunk runs to their right; a branch
+   lands a leaf on each card's top-right corner (drawn by
+   CircuitVines from the measured [data-grove-card] corners).
+   ============================================================ */
+.tg-grove {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(44px, 6.5vh, 76px);
+}
+
+.tg-row-card {
+  display: grid;
+  grid-template-columns: minmax(190px, 34%) 1fr;
+  gap: 16px;
+  padding: 14px;
+  text-decoration: none;
+}
+
+/* gentler lift than .tg-card's default so the corner leaf stays pinned */
+.tg-row-card:hover { transform: translateY(-2px); }
+
+.tg-row-media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--tg-border);
+  background: rgba(236, 224, 203, 0.02);
+  align-self: center;
+}
+
+.tg-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 6px 4px 0;
+}
+
+.tg-row-open {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 12px;
+  color: var(--tg-green);
+  opacity: 0.75;
+  transition: opacity 0.18s ease;
+}
+.tg-row-card:hover .tg-row-open { opacity: 1; }
+
+/* small screens: stack media above text, keep the corner clear for the leaf */
+@media (max-width: 640px) {
+  .tg-row-card { grid-template-columns: 1fr; padding: 12px; }
+  .tg-row-media { align-self: stretch; }
+  .tg-row-body { padding: 2px 2px 2px 0; }
+}
 
 /* small fruit-card hanging at a branch tip (like the example) */
 .tg-fruit-card {
