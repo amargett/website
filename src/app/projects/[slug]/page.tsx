@@ -1,12 +1,11 @@
 import { client } from "../../../sanity/lib/client";
 import { urlFor } from "../../../sanity/lib/image";
-import { urlForFile } from "../../../sanity/lib/file";
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
 import HoverVideo from "../../../components/HoverVideo";
 import { notFound } from "next/navigation";
-import { projectId, dataset } from "../../../sanity/env";
+import { videoUrlFor } from "../../../sanity/lib/media";
 
 // Custom components for PortableText
 const ProjectImage = ({ value }: { value: any }) => {
@@ -42,28 +41,18 @@ const ProjectImage = ({ value }: { value: any }) => {
           alt={value.alt}
           width={800}
           height={600}
-          className={`w-full rounded-lg shadow-lg bg-white ${objectFitClasses[value.objectFit as keyof typeof objectFitClasses] || objectFitClasses.cover}`}
+          className={`w-full border border-[var(--line)] bg-white ${objectFitClasses[value.objectFit as keyof typeof objectFitClasses] || objectFitClasses.cover}`}
         />
       </div>
       {value.caption && (
-        <p className="text-sm text-[var(--tg-dim)] text-center mt-2 italic">{value.caption}</p>
+        <p className="text-sm text-[var(--dim)] text-center mt-2 italic">{value.caption}</p>
       )}
     </div>
   );
 };
 
 const ProjectVideo = ({ value }: { value: any }) => {
-  let videoUrl = null;
-  
-  if (value.videoFile?.asset?.url) {
-    videoUrl = value.videoFile.asset.url;
-  } else if (value.videoFile?.asset?._ref) {
-    const assetRef = value.videoFile.asset._ref;
-    const fileId = assetRef.replace('file-', '').split('-').slice(0, -1).join('-');
-    videoUrl = `https://cdn.sanity.io/files/${projectId}/${dataset}/${fileId}.mp4`;
-  } else if (value.videoUrl) {
-    videoUrl = value.videoUrl;
-  }
+  const videoUrl = videoUrlFor(value);
 
   if (!videoUrl) return null;
 
@@ -87,11 +76,11 @@ const ProjectVideo = ({ value }: { value: any }) => {
       <div className={`${aspectRatioClasses[value.aspectRatio as keyof typeof aspectRatioClasses] || aspectRatioClasses.auto} relative`}>
         <HoverVideo
           src={videoUrl}
-          className="w-full h-full absolute inset-0 rounded-lg shadow-lg object-cover"
+          className="w-full h-full absolute inset-0 border border-[var(--line)] object-cover"
         />
       </div>
       {value.caption && (
-        <p className="text-sm text-[var(--tg-dim)] text-center mt-2 italic">{value.caption}</p>
+        <p className="text-sm text-[var(--dim)] text-center mt-2 italic">{value.caption}</p>
       )}
     </div>
   );
@@ -139,16 +128,16 @@ export async function generateStaticParams() {
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   let project = null;
-  
+
   try {
     project = await client.fetch(projectQuery, { slug });
   } catch (err) {
     console.error("Sanity fetch failed:", err);
-    // Return a working page even if Sanity fails
     return (
-      <main className="tg-mono max-w-4xl mx-auto px-4 py-16 relative z-10">
-        <p className="text-[var(--tg-amber)]">$ cat project.md</p>
-        <p className="text-[var(--tg-dim)] text-sm mt-2">// content is loading… if this persists, check the Sanity configuration.</p>
+      <main>
+        <p className="ps-label">
+          Content is loading&hellip; if this persists, check the Sanity configuration.
+        </p>
       </main>
     );
   }
@@ -168,66 +157,43 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   };
 
   const getCategorySpecificInfo = () => {
-    switch (project.category) {
-      case 'research':
-        return project.publication && (
-          <div className="tg-mono text-sm text-[var(--tg-dim)] mb-2">
-            <strong>Publication:</strong> {project.publication}
-          </div>
-        );
-      case 'coursework':
-        return project.courseCode && (
-          <div className="tg-mono text-sm text-[var(--tg-dim)] mb-2">
-            <strong>Course:</strong> {project.courseCode}
-          </div>
-        );
-      case 'industry':
-        return project.role && (
-          <div className="tg-mono text-sm text-[var(--tg-dim)] mb-2">
-            <strong>Role:</strong> {project.role}
-          </div>
-        );
-      case 'extracurricular':
-        return project.organization && (
-          <div className="tg-mono text-sm text-[var(--tg-dim)] mb-2">
-            <strong>Organization:</strong> {project.organization}
-          </div>
-        );
-      default:
-        return null;
-    }
+    const info = (() => {
+      switch (project.category) {
+        case 'research': return project.publication && ['Publication', project.publication];
+        case 'coursework': return project.courseCode && ['Course', project.courseCode];
+        case 'industry': return project.role && ['Role', project.role];
+        case 'extracurricular': return project.organization && ['Organization', project.organization];
+        default: return null;
+      }
+    })();
+    if (!info) return null;
+    return (
+      <div className="ps-card-meta !mt-0 mb-3">
+        {info[0]}: <b>{info[1]}</b>
+      </div>
+    );
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-12 relative z-10">
+    <main className="max-w-4xl">
       {/* Back link */}
-      <Link
-        href="/projects"
-        className="tg-mono inline-block text-sm text-[var(--tg-green)] hover:text-[var(--tg-amber)] transition-colors mb-6"
-      >
-        ← cd ~/projects
+      <Link href="/projects" className="ps-index-link inline-block mb-8">
+        &larr; Project index
       </Link>
 
       {/* Header */}
       <header className="mb-8">
-        <div className="tg-mono flex items-center gap-4 mb-4 text-sm">
-          <span className="px-2.5 py-1 rounded-md border border-[var(--tg-amber)]/50 text-[var(--tg-amber)] font-medium">
-            {getCategoryDisplayName(project.category)}
-          </span>
-          {project.year && (
-            <span className="text-[var(--tg-dim)]">{project.year}</span>
-          )}
+        <div className="flex items-center gap-3 mb-4">
+          <span className="ps-chip">{getCategoryDisplayName(project.category)}</span>
+          {project.year && <span className="ps-label">{project.year}</span>}
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-[var(--tg-fg)]">{project.title}</h1>
+        <h1 className="ps-h1 mb-4">{project.title}</h1>
         {getCategorySpecificInfo()}
-        <p className="text-[var(--tg-dim)] text-lg mb-4 leading-relaxed">{project.shortDescription}</p>
+        <p className="ps-card-desc !text-base mb-4">{project.shortDescription}</p>
         {project.technicalSkills && project.technicalSkills.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {project.technicalSkills.map((skill: string, skillIndex: number) => (
-              <span
-                key={skillIndex}
-                className="tg-chip tg-mono inline-block px-3 py-1 rounded-md text-sm"
-              >
+              <span key={skillIndex} className="ps-chip">
                 {skill.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </span>
             ))}
@@ -239,25 +205,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       {project.showMainMedia && project.mainMedia && (
         <div className="mb-8">
           {(() => {
-            let videoUrl = null;
-            
-            // Try to get the video URL from the asset directly
-            if (project.mainMedia.videoFile?.asset?.url) {
-              videoUrl = project.mainMedia.videoFile.asset.url;
-            } else if (project.mainMedia.videoFile?.asset?._ref) {
-              // Extract the file ID from the asset reference
-              const assetRef = project.mainMedia.videoFile.asset._ref;
-              const fileId = assetRef.replace('file-', '').split('-').slice(0, -1).join('-');
-              videoUrl = `https://cdn.sanity.io/files/${projectId}/${dataset}/${fileId}.mp4`;
-            } else if (project.mainMedia.videoUrl) {
-              videoUrl = project.mainMedia.videoUrl;
-            }
-            
-            // Debug logging for video issues
-            if (project.mainMedia?.type === 'video') {
-              // Video URL construction is handled in the component
-            }
-            
+            const videoUrl = videoUrlFor(project.mainMedia);
+
             if (project.mainMedia.type === 'image' && project.mainMedia.image) {
               return (
                 <Image
@@ -265,14 +214,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                   alt={project.mainMedia.alt}
                   width={1200}
                   height={800}
-                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-lg bg-white"
+                  className="w-full h-auto max-h-96 object-contain border border-[var(--line)] bg-white"
                 />
               );
             } else if (project.mainMedia.type === 'video' && videoUrl) {
               return (
                 <HoverVideo
                   src={videoUrl}
-                  className="w-full h-auto max-h-96 rounded-lg shadow-lg"
+                  className="w-full h-auto max-h-96 border border-[var(--line)]"
                 />
               );
             }
@@ -284,17 +233,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       {/* Project Content */}
       {project.content && project.content.length > 0 && (
         <section className="mb-8">
-          <div className="tg-prose max-w-none">
+          <div className="ps-prose max-w-none">
             <PortableText value={project.content} components={portableTextComponents} />
           </div>
         </section>
       )}
-
-
-
-
-
-
     </main>
   );
-} 
+}

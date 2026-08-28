@@ -1,796 +1,490 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ————————————————————————————————————————————————
+   Plotter-sheet design system
+   Warm paper, ink hairlines, copper accents; mono for
+   structure (labels, titles, metadata), serif for prose.
+   ———————————————————————————————————————————————— */
 
 :root {
-  --background: #fafafa;
-  --foreground: #374151;
-  --primary: #475569;
-  --primary-dark: #334155;
-  --secondary: #64748b;
-  --accent: #3b82f6;
-  --cosmic-slate: #475569;
-  --cosmic-blue: #3b82f6;
-  --cosmic-dark: #1e293b;
-  --gradient-start: #f97316; /* Orange */
-  --gradient-mid: #e0f2fe;   /* Light Blue */
-  --gradient-end: #0a4a5a;   /* Bluer Teal/Blue-Green */
-
-  /* Terminal Garden palette (site-wide) */
-  --tg-bg: #161210;
-  --tg-bg-2: #1d1610;
-  --tg-panel: rgba(34, 26, 20, 0.72);
-  --tg-border: #3a2d22;
-  --tg-fg: #ece0cb;
-  --tg-dim: #9c8974;
-  --tg-green: #96b85f;
-  --tg-amber: #e2983f;
-  --tg-teal: #57a99b;
-  --tg-orange: #cf6a34;
+  --paper: #ede4d1;
+  --paper-deep: #e6dbc4;
+  --ink: #2c231a;
+  --dim: #83725a;
+  --faint: #a8977c;
+  --line: #c9bba0;
+  --grid: rgba(44, 35, 26, 0.055);
+  --copper: #b0672f;
+  --green: #66803c;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+  --serif: "Charter", "Iowan Old Style", Georgia, "Times New Roman", serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-dark: var(--primary-dark);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
-  --color-cosmic-slate: var(--cosmic-slate);
-  --color-cosmic-blue: var(--cosmic-blue);
-  --color-cosmic-dark: var(--cosmic-dark);
-  --color-gradient-start: var(--gradient-start);
-  --color-gradient-mid: var(--gradient-mid);
-  --color-gradient-end: var(--gradient-end);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #e5e7eb;
-    --primary: #475569;
-    --primary-dark: #334155;
-    --secondary: #64748b;
-    --accent: #3b82f6;
-    --cosmic-slate: #475569;
-    --cosmic-blue: #3b82f6;
-    --cosmic-dark: #1e293b;
-    --gradient-start: #ea580c; /* Darker Orange */
-    --gradient-mid: #0c4a6e;   /* Darker Mid Blue */
-    --gradient-end: #064a4e;   /* Bluer Dark Teal/Blue-Green */
-  }
-}
-
-/* Header typography */
-.header-text {
-  font-family: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-weight: 300;
-  letter-spacing: -0.02em;
-}
-
-/* Typewriter effect for header greeting */
-.typewriter-greeting {
-  position: relative;
-  display: inline-block;
-}
-
-.typewriter-greeting p {
-  margin: 0;
-  white-space: nowrap;
-  position: relative;
-}
-
-.typewriter-greeting p::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  right: 0;
-  width: 100%;
-  height: calc(100% + 4px);
-  background: white; /* White to match header background */
-  animation: reveal-text 2s steps(25, end) forwards;
-}
-
-.typewriter-greeting p::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2px;
-  height: 100%;
-  background: #0a4a5a; /* Dark blue cursor to match text color */
-  animation: move-cursor 2s steps(25, end) forwards, blink-caret 0.75s step-end 3, hide-cursor 0s forwards;
-  animation-delay: 0s, 2s, 4.25s;
-}
-
-@keyframes reveal-text {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0;
-  }
-}
-
-@keyframes move-cursor {
-  from {
-    left: 0;
-  }
-  to {
-    left: calc(100% - 2px); /* Position cursor right before the end of text */
-  }
-}
-
-@keyframes blink-caret {
-  0%, 50% {
-    opacity: 1;
-  }
-  51%, 100% {
-    opacity: 0;
-  }
-}
-
-@keyframes hide-cursor {
-  to {
-    opacity: 0;
-  }
+html {
+  background: var(--paper-deep);
 }
 
 body {
-  min-height: 100vh;
-  color: var(--tg-fg);
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper-deep);
+  padding: 22px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 1px dashed var(--copper);
+  outline-offset: 3px;
+}
+
+.ps-mono {
+  font-family: var(--mono);
+}
+
+.ps-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* ---- the sheet: grid paper with a double-ruled ink border ---- */
+.ps-sheet {
+  max-width: 68rem;
+  margin: 0 auto;
+  min-height: calc(100vh - 44px);
+  display: flex;
+  flex-direction: column;
   background:
-    radial-gradient(1100px 620px at 82% -8%, rgba(207, 106, 52, 0.10), transparent 62%),
-    var(--tg-bg);
-  background-attachment: fixed;
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    var(--paper);
+  background-size: 44px 44px, 44px 44px, auto;
+  border: 1px solid var(--ink);
+  box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px var(--ink);
 }
 
-/* Faint plotter-bed / CAD grid, site-wide */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(236, 224, 203, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(236, 224, 203, 0.03) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(circle at 50% 30%, black, transparent 90%);
+.ps-canvas {
+  flex: 1;
+  padding: 2.6rem 3.4rem 3rem;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 1s ease-out forwards;
-}
-
-/* Typewriter effect */
-@keyframes typewriter {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
-}
-
-@keyframes blink {
-  0%, 50% {
-    border-color: transparent;
-  }
-  51%, 100% {
-    border-color: var(--foreground);
-  }
-}
-
-.typewriter {
-  overflow: hidden;
-  white-space: nowrap;
-  border-right: 2px solid;
-  animation: typewriter 3s steps(40, end), blink 0.75s step-end infinite;
-}
-
-.typewriter-line-1 {
-  animation-delay: 0s;
-}
-
-.typewriter-line-2 {
-  animation-delay: 1.5s;
-  animation-fill-mode: both;
-  white-space: nowrap;
-}
-
-/* Full page gradient background - orange top right, blue bottom left */
-.full-page-gradient {
-  min-height: 100vh;
-  background: radial-gradient(circle at top right, #f97316 0%, #f97316 30%, #e0f2fe 30%, #e0f2fe 50%, #0a4a5a 100%);
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
-/* Cosmic gradient backgrounds */
-.cosmic-gradient {
-  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-}
-
-.cosmic-card {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(71, 85, 105, 0.1);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-}
-
-.cosmic-surface {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(71, 85, 105, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-  .cosmic-card {
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(71, 85, 105, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  }
-  
-  .cosmic-surface {
-    background: rgba(30, 41, 59, 0.9);
-    border: 1px solid rgba(71, 85, 105, 0.2);
-  }
-}
-
-/* Green header with leaves */
-.green-header {
-  background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.green-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 30%, rgba(34, 197, 94, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 40% 70%, rgba(34, 197, 94, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(34, 197, 94, 0.2) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.leaf-decoration {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  background: rgba(34, 197, 94, 0.6);
-  border-radius: 0 50% 50% 50%;
-  transform: rotate(45deg);
-  animation: leafFloat 6s ease-in-out infinite;
-}
-
-.leaf-decoration:nth-child(1) {
-  top: 10%;
-  left: 10%;
-  animation-delay: 0s;
-}
-
-.leaf-decoration:nth-child(2) {
-  top: 20%;
-  right: 15%;
-  animation-delay: 2s;
-}
-
-.leaf-decoration:nth-child(3) {
-  bottom: 15%;
-  left: 20%;
-  animation-delay: 4s;
-}
-
-.leaf-decoration:nth-child(4) {
-  bottom: 25%;
-  right: 10%;
-  animation-delay: 1s;
-}
-
-@keyframes leafFloat {
-  0%, 100% {
-    transform: rotate(45deg) translateY(0px);
-    opacity: 0.6;
-  }
-  50% {
-    transform: rotate(45deg) translateY(-10px);
-    opacity: 0.8;
-  }
-}
-
-/* ============================================================
-   Terminal Garden — landing page theme
-   Dark, warm, monospace. Greens & ambers on deep brown-black,
-   with circuit-vine traces growing across the screen.
-   ============================================================ */
-/* Landing wrapper: monospace, terminal-forward */
-.terminal-garden {
-  min-height: 100vh;
-  position: relative;
-  font-family: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-/* Monospace helper for terminal-style labels on otherwise sans pages */
-.tg-mono {
-  font-family: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-.tg-content {
-  position: relative;
-  z-index: 2;
-}
-
-/* Terminal window */
-.tg-window {
-  background: var(--tg-panel);
-  border: 1px solid var(--tg-border);
-  border-radius: 14px;
-  backdrop-filter: blur(8px);
-  box-shadow:
-    0 24px 60px -20px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(236, 224, 203, 0.04);
-  overflow: hidden;
-}
-
-.tg-titlebar {
+/* ---- nav ---- */
+.ps-nav {
   display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  padding: 0.7rem 1rem;
-  border-bottom: 1px solid var(--tg-border);
-  background: linear-gradient(180deg, rgba(236, 224, 203, 0.045), transparent);
-}
-
-.tg-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-/* Terminal cursor: blinks twice on mount, then rests as a steady block.
-   (The resting prompt mounts fresh when the boot sequence finishes, so it
-   gets its own two blinks and then holds.) */
-.tg-cursor {
-  display: inline-block;
-  width: 0.62em;
-  height: 1.05em;
-  transform: translateY(0.16em);
-  background: var(--tg-green);
-  margin-left: 2px;
-  animation: tg-blink 1.05s steps(1) 2;
-}
-
-@keyframes tg-blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-/* Full-page circuit-root system — a base at the top whose roots grow down the
-   page as you scroll. Sits behind all home-page content. */
-.tg-roots {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.tg-roots-branches { opacity: 0.62; }
-.tg-roots-fine { opacity: 0.4; }
-.tg-roots-nodes { opacity: 0.85; }
-.tg-roots-pads { opacity: 0.7; }
-
-/* Soft foliage body of the canopy — fades in once at load. */
-.tg-roots-canopy { animation: tg-canopy-in 1.3s ease-out 0.35s both; }
-@keyframes tg-canopy-in { from { opacity: 0; } to { opacity: 1; } }
-
-/* Roots stay hidden until the scroll front reaches them, then draw in once. */
-.tg-root {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: var(--len, 600);
-  stroke-dashoffset: var(--len, 600);
-}
-.tg-root.grown { animation: tg-grow 1.3s ease-out forwards; }
-
-@keyframes tg-grow {
-  to { stroke-dashoffset: 0; }
-}
-
-/* Via-ring "leaves" bloom in once their branch has grown — then stay quiet
-   (static hardware, no pulsing cores). */
-.tg-rnode {
-  transform-box: fill-box;
-  transform-origin: center;
-  opacity: 0;
-}
-.tg-rnode.grown {
-  animation: tg-node-in 0.5s ease-out forwards;
-}
-
-@keyframes tg-node-in {
-  from { opacity: 0; transform: scale(0); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* Accent leaves get a soft glow (color set inline per node) */
-.tg-node-accent { filter: drop-shadow(0 0 5px currentColor); }
-
-/* Dense foliage leaves: scale in once, no continuous pulse (there are many). */
-.tg-rleaf {
-  transform-box: fill-box;
-  transform-origin: center;
-  opacity: 0;
-  transform: rotate(var(--rot, 0deg)) scale(0);
-}
-.tg-rleaf.grown {
-  animation:
-    tg-leaf-in 0.5s ease-out forwards,
-    tg-leaf-drift var(--ddur, 6s) ease-in-out var(--ddel, 1s) infinite;
-}
-
-@keyframes tg-leaf-in {
-  from { opacity: 0; transform: rotate(var(--rot, 0deg)) scale(0); }
-  to { opacity: 1; transform: rotate(var(--rot, 0deg)) scale(1); }
-}
-
-/* gentle flutter, as if drifting on a breeze */
-@keyframes tg-leaf-drift {
-  0% { transform: rotate(var(--rot, 0deg)) translate(calc(var(--dsway, 4px) * -1), 0); }
-  50% { transform: rotate(calc(var(--rot, 0deg) + 12deg)) translate(var(--dsway, 4px), calc(var(--dsway, 4px) * 0.7)); }
-  100% { transform: rotate(var(--rot, 0deg)) translate(calc(var(--dsway, 4px) * -1), 0); }
-}
-
-/* Junction pads fade in with their branch. */
-.tg-rpad { opacity: 0; }
-.tg-rpad.grown { animation: tg-pad-in 0.5s ease-out forwards; }
-
-@keyframes tg-pad-in {
-  to { opacity: 1; }
-}
-
-/* Terminal project cards */
-.tg-card {
-  position: relative;
-  background: var(--tg-panel);
-  border: 1px solid var(--tg-border);
-  border-radius: 12px;
-  backdrop-filter: blur(6px);
-  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
-}
-
-.tg-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(150, 184, 95, 0.55);
-  box-shadow:
-    0 20px 40px -18px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(150, 184, 95, 0.15);
-}
-
-.tg-chip {
-  border: 1px solid var(--tg-border);
-  color: var(--tg-dim);
-  background: rgba(236, 224, 203, 0.03);
-}
-
-/* Terminal-style filter/pill buttons */
-.tg-btn {
-  font-family: var(--font-roboto-mono), ui-monospace, monospace;
-  border: 1px solid var(--tg-border);
-  color: var(--tg-dim);
-  background: rgba(236, 224, 203, 0.03);
-  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-
-.tg-btn:hover {
-  color: var(--tg-fg);
-  border-color: rgba(150, 184, 95, 0.5);
-}
-
-.tg-btn-active {
-  color: var(--tg-bg);
-  background: var(--tg-green);
-  border-color: var(--tg-green);
-  font-weight: 600;
-}
-
-/* Long-form copy on dark: links + emphasis inside PortableText */
-.tg-prose {
-  color: var(--tg-fg);
-  line-height: 1.75;
-}
-.tg-prose a {
-  color: var(--tg-green);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.tg-prose a:hover { color: var(--tg-amber); }
-.tg-prose h1, .tg-prose h2, .tg-prose h3 {
-  color: var(--tg-fg);
-  font-weight: 600;
-  margin: 1.6em 0 0.6em;
-}
-.tg-prose h2 { font-size: 1.4rem; }
-.tg-prose h3 { font-size: 1.15rem; }
-.tg-prose p { margin: 0 0 1em; }
-.tg-prose strong { color: var(--tg-amber); }
-.tg-prose ul, .tg-prose ol { margin: 0 0 1em 1.25em; }
-.tg-prose li { margin: 0.3em 0; }
-.tg-prose blockquote {
-  border-left: 2px solid var(--tg-green);
-  padding-left: 1rem;
-  color: var(--tg-dim);
-  font-style: italic;
-  margin: 1em 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tg-root { animation: none; stroke-dashoffset: 0; }
-  .tg-rnode { animation: none; opacity: 0.7; }
-  .tg-rleaf { animation: none; opacity: 1; transform: rotate(var(--rot, 0deg)) scale(1); }
-  .tg-roots-canopy { animation: none; }
-  .tg-rpad { animation: none; opacity: 0.7; }
-  .tg-cursor { animation: none; }
-  .tg-pop { animation: none; }
-  .tg-orchard-stem { animation: none; stroke-dashoffset: 0; }
-  .tg-orchard-tip { animation: none; opacity: 0.75; }
-  .tg-sprout { animation: none; opacity: 1; transform: none; }
-}
-
-/* ============================================================
-   Featured "orchard": project pills hanging on the tree; hover
-   a pill to float out the full card beside it.
-   ============================================================ */
-.tg-orchard { position: relative; width: 100%; z-index: 2; }
-
-/* full-page overlay: fruit-cards positioned on the tree's real branch-tip
-   anchors (shares CircuitVines' coordinate space). */
-.tg-fruit-overlay { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
-.tg-fruit-overlay .tg-orchard-node { pointer-events: auto; }
-
-.tg-orchard-stems { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
-.tg-orchard-stem {
-  fill: none;
-  stroke: var(--tg-green);
-  stroke-width: 1.4;
-  opacity: 0.4;
-  stroke-linecap: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: tg-stem-draw 0.55s ease-out var(--sd, 1.3s) forwards;
-}
-@keyframes tg-stem-draw { to { stroke-dashoffset: 0; } }
-.tg-orchard-tip {
-  fill: var(--tg-green);
-  opacity: 0;
-  animation: tg-tip-in 0.3s ease-out var(--sd, 1.5s) forwards;
-}
-@keyframes tg-tip-in { to { opacity: 0.75; } }
-
-/* pills hang from the branch tip and sprout in once the stem has drawn */
-.tg-orchard-node { position: absolute; transform: translate(-50%, 0); z-index: 3; }
-.tg-orchard-node.is-active { z-index: 40; }
-.tg-sprout {
-  display: inline-block;
-  opacity: 0;
-  transform: scale(0.35) translateY(-10px);
-  transform-origin: top center;
-  animation: tg-sprout 0.5s cubic-bezier(.2, .8, .25, 1) var(--pd, 1.75s) forwards;
-}
-@keyframes tg-sprout {
-  0% { opacity: 0; transform: scale(0.35) translateY(-10px); }
-  60% { opacity: 1; }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.tg-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  white-space: nowrap;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-family: var(--font-roboto-mono), ui-monospace, monospace;
-  font-size: 12.5px;
-  color: var(--tg-fg);
-  background: var(--tg-panel);
-  border: 1px solid var(--tg-border);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 8px 22px -12px rgba(0, 0, 0, 0.7);
-  transition: color .18s, background .18s, border-color .18s, transform .18s, box-shadow .18s;
-}
-.tg-pill:hover,
-.tg-orchard-node.is-active .tg-pill {
-  color: var(--tg-bg);
-  background: var(--tg-green);
-  border-color: var(--tg-green);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.8), 0 0 0 3px rgba(150, 184, 95, 0.18);
-}
-.tg-pill-dot {
-  width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto;
-  background: var(--tg-amber);
-  box-shadow: 0 0 6px rgba(226, 152, 63, 0.8);
-}
-.tg-pill:hover .tg-pill-dot,
-.tg-orchard-node.is-active .tg-pill-dot { background: var(--tg-bg); box-shadow: none; }
-.tg-pill-label { max-width: 148px; overflow: hidden; text-overflow: ellipsis; }
-.tg-pill:focus-visible { outline: 2px solid var(--tg-amber); outline-offset: 2px; }
-
-/* ============================================================
-   Featured "grove": wide horizontal project cards stacked down
-   the page. The sapling's trunk runs to their right; a branch
-   lands a leaf on each card's top-right corner (drawn by
-   CircuitVines from the measured [data-grove-card] corners).
-   ============================================================ */
-.tg-grove {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(44px, 6.5vh, 76px);
-}
-
-.tg-row-card {
-  display: grid;
-  grid-template-columns: minmax(190px, 34%) 1fr;
-  gap: 16px;
-  padding: 14px;
-  text-decoration: none;
-}
-
-/* gentler lift than .tg-card's default so the corner leaf stays pinned */
-.tg-row-card:hover { transform: translateY(-2px); }
-
-.tg-row-media {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--tg-border);
-  background: rgba(236, 224, 203, 0.02);
-  align-self: center;
-}
-
-.tg-row-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  padding: 4px 6px 4px 0;
-}
-
-.tg-row-open {
-  margin-top: auto;
-  padding-top: 6px;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding: 0.85rem 1.6rem;
+  border-bottom: 1px solid var(--ink);
+  font-family: var(--mono);
   font-size: 12px;
-  color: var(--tg-green);
-  opacity: 0.75;
-  transition: opacity 0.18s ease;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
-.tg-row-card:hover .tg-row-open { opacity: 1; }
-
-/* small screens: stack media above text, keep the corner clear for the leaf */
-@media (max-width: 640px) {
-  .tg-row-card { grid-template-columns: 1fr; padding: 12px; }
-  .tg-row-media { align-self: stretch; }
-  .tg-row-body { padding: 2px 2px 2px 0; }
+.ps-nav-crumbs {
+  display: flex;
+  gap: 2rem;
+}
+.ps-nav a {
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
+}
+.ps-nav a:hover {
+  color: var(--copper);
+  border-bottom-color: var(--copper);
+}
+.ps-nav-note {
+  color: var(--faint);
 }
 
-/* small fruit-card hanging at a branch tip (like the example) */
-.tg-fruit-card {
-  display: block;
+/* ---- headings ---- */
+.ps-h1 {
+  font-family: var(--mono);
+  font-size: clamp(1.7rem, 4.5vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.ps-h2 {
+  font-family: var(--mono);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+/* ---- home header ---- */
+.ps-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2.5rem 3rem;
+  align-items: end;
+}
+.ps-role {
+  margin-top: 0.9rem;
+  max-width: 34rem;
+  font-size: 1.05rem;
+}
+.ps-role em {
+  color: var(--copper);
+  font-style: italic;
+}
+
+/* ---- section heads ---- */
+.ps-work-head {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.ps-rule {
+  flex: 1;
+  border-top: 1px solid var(--line);
+}
+
+/* ---- featured items as ballooned cards ---- */
+.ps-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: 1.6rem;
+  margin-top: 1.4rem;
+}
+.ps-card {
   position: relative;
-  width: 162px;
-  padding: 10px 13px 11px;
-  border-radius: 11px;
-  background: var(--tg-panel);
-  border: 1px solid var(--tg-border);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.75);
-  transition: border-color .18s, transform .18s, box-shadow .18s;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 1.15rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
 }
-.tg-fruit-card::before {
+.ps-card:hover {
+  border-color: var(--ink);
+}
+/* registration ticks on two corners */
+.ps-card::before,
+.ps-card::after {
   content: "";
-  position: absolute; top: -3px; left: 50%; transform: translateX(-50%);
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--tg-green); box-shadow: 0 0 6px rgba(150, 184, 95, 0.7);
-}
-.tg-fruit-bar { display: block; width: 44%; height: 4px; border-radius: 2px; background: var(--tg-green); }
-.tg-fruit-name {
-  display: block; margin: 8px 0 0; font-size: 12px; line-height: 1.3;
-  color: var(--tg-fg); font-family: var(--font-roboto-mono), ui-monospace, monospace;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.tg-fruit-line { display: block; width: 66%; height: 2.4px; border-radius: 1.2px; background: var(--tg-dim); opacity: .5; margin-top: 7px; }
-.tg-fruit-card:hover,
-.tg-orchard-node.is-active .tg-fruit-card {
-  border-color: rgba(150, 184, 95, 0.6);
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px -14px rgba(0, 0, 0, 0.85), 0 0 0 3px rgba(150, 184, 95, 0.14);
-}
-.tg-fruit-card:focus-visible { outline: 2px solid var(--tg-amber); outline-offset: 2px; }
-
-/* full-card popover */
-.tg-pop { position: absolute; top: 50%; width: 300px; z-index: 40; animation: tg-pop-in .16s ease-out; }
-.tg-pop-right { left: 100%; margin-left: 14px; transform: translateY(-50%); }
-.tg-pop-left  { right: 100%; margin-right: 14px; transform: translateY(-50%); }
-/* transparent hover-bridge across the gap so moving pill -> card doesn't drop */
-.tg-pop::before { content: ""; position: absolute; top: 0; bottom: 0; width: 18px; }
-.tg-pop-right::before { right: 100%; }
-.tg-pop-left::before  { left: 100%; }
-@keyframes tg-pop-in {
-  from { opacity: 0; transform: translateY(-50%) scale(.97); }
-  to   { opacity: 1; }
-}
-.tg-pop-inner { padding: 12px; }
-.tg-pop-head { font-size: 11px; color: var(--tg-dim); margin-bottom: 8px; }
-.tg-pop-media {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--tg-border);
-  background: rgba(236, 224, 203, 0.02);
-  margin-bottom: 9px;
-}
-.tg-pop-title { font-size: 14px; font-weight: 600; color: var(--tg-fg); margin: 0 0 5px; }
-.tg-pop-desc {
-  font-size: 12px; line-height: 1.5; color: var(--tg-dim); margin: 0 0 9px;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-}
-.tg-pop-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-.tg-pop-open { display: block; margin-top: 9px; font-size: 11px; color: var(--tg-green); }
-
-/* Leafy header background */
-.leafy-header {
-  background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.leafy-header::before {
-  content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(ellipse 80px 50px at 20% 20%, rgba(34, 197, 94, 0.7) 0%, transparent 60%),
-    radial-gradient(ellipse 70px 40px at 80% 30%, rgba(34, 197, 94, 0.6) 0%, transparent 60%),
-    radial-gradient(ellipse 90px 55px at 40% 70%, rgba(34, 197, 94, 0.7) 0%, transparent 60%),
-    radial-gradient(ellipse 60px 45px at 90% 80%, rgba(34, 197, 94, 0.6) 0%, transparent 60%),
-    radial-gradient(ellipse 75px 50px at 10% 60%, rgba(34, 197, 94, 0.6) 0%, transparent 60%),
-    radial-gradient(ellipse 55px 40px at 70% 10%, rgba(34, 197, 94, 0.7) 0%, transparent 60%);
-  pointer-events: none;
+  width: 9px;
+  height: 9px;
+  border-color: var(--dim);
+  border-style: solid;
+  border-width: 0;
   z-index: 1;
 }
+.ps-card::before {
+  top: -1px;
+  left: -1px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+.ps-card::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+.ps-card:hover::before,
+.ps-card:hover::after {
+  border-color: var(--copper);
+}
 
-.leafy-header > * {
+/* balloon item number, as on an assembly drawing's parts list */
+.ps-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+.ps-balloon {
+  width: 18px;
+  height: 18px;
+  border: 1.3px solid var(--copper);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--copper);
+  flex-shrink: 0;
+}
+.ps-card-title {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  /* line height matches the 18px balloon exactly, so the balloon is
+     vertically centered on the title's first line */
+  line-height: 18px;
+}
+.ps-card-desc {
+  font-size: 0.95rem;
+  color: var(--dim);
+  font-style: italic;
+  line-height: 1.5;
+}
+.ps-card-meta {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.ps-card-meta b {
+  font-weight: 400;
+  color: var(--green);
+}
+
+/* hover media preview: the project's video (or image) fades in over the card */
+.ps-preview {
+  position: absolute;
+  inset: 0;
+  background: var(--paper-deep);
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+.ps-card:hover .ps-preview,
+.ps-card:focus-visible .ps-preview {
+  opacity: 1;
+}
+.ps-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ps-preview {
+    transition: none;
+  }
+}
+
+.ps-index-link {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2px;
+}
+.ps-index-link:hover {
+  color: var(--copper);
+  border-bottom-color: var(--copper);
+}
+
+/* ---- project index rows ---- */
+.ps-row {
+  display: flex;
+  gap: 1.5rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 1.1rem 1.25rem;
+}
+.ps-row:hover {
+  border-color: var(--ink);
+}
+.ps-row-media {
   position: relative;
-  z-index: 2;
+  width: 11rem;
+  height: 7rem;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+.ps-row-title {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.ps-row:hover .ps-row-title {
+  color: var(--copper);
+}
+
+/* ---- chips & filter buttons ---- */
+.ps-chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+  display: inline-block;
+}
+.ps-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+}
+.ps-btn:hover {
+  color: var(--copper);
+  border-color: var(--copper);
+}
+.ps-btn-active {
+  color: var(--copper);
+  border-color: var(--copper);
+}
+
+/* ---- title block ---- */
+.ps-titleblock {
+  border-top: 1px solid var(--ink);
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 1.4fr 1.4fr 1fr;
+  font-family: var(--mono);
+  background: var(--paper);
+}
+.tb-cell {
+  padding: 0.55rem 1rem 0.7rem;
+  border-right: 1px solid var(--line);
+  min-width: 0;
+}
+.tb-cell:last-child {
+  border-right: 0;
+}
+.tb-key {
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: block;
+  margin-bottom: 0.15rem;
+}
+.tb-val {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tb-val a {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 1px;
+}
+.tb-val a:hover {
+  color: var(--copper);
+  border-bottom-color: var(--copper);
+}
+
+/* ---- prose (Portable Text) ---- */
+.ps-prose p {
+  margin: 0 0 1em;
+}
+.ps-prose p:last-child {
+  margin-bottom: 0;
+}
+.ps-prose strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+.ps-prose a {
+  color: var(--copper);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ps-prose ul,
+.ps-prose ol {
+  margin: 0 0 1em;
+  padding-left: 1.4em;
+}
+.ps-prose ul {
+  list-style: disc;
+}
+.ps-prose ol {
+  list-style: decimal;
+}
+.ps-prose h1,
+.ps-prose h2,
+.ps-prose h3,
+.ps-prose h4 {
+  font-family: var(--mono);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 1.5em 0 0.6em;
+}
+.ps-prose h1 {
+  font-size: 1.25rem;
+}
+.ps-prose h2 {
+  font-size: 1.1rem;
+}
+.ps-prose h3,
+.ps-prose h4 {
+  font-size: 1rem;
+}
+.ps-prose blockquote {
+  border-left: 2px solid var(--line);
+  padding-left: 1em;
+  color: var(--dim);
+  font-style: italic;
+  margin: 0 0 1em;
+}
+
+/* ---- small screens ---- */
+@media (max-width: 760px) {
+  body {
+    padding: 10px;
+  }
+  .ps-sheet {
+    min-height: calc(100vh - 20px);
+  }
+  .ps-canvas {
+    padding: 1.8rem 1.4rem 2.2rem;
+  }
+  .ps-nav {
+    padding: 0.75rem 1rem;
+  }
+  .ps-nav-crumbs {
+    gap: 1.1rem;
+  }
+  .ps-header {
+    grid-template-columns: 1fr;
+  }
+  .ps-header figure {
+    justify-self: start;
+  }
+  .ps-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .ps-row-media {
+    width: 100%;
+    height: 10rem;
+  }
+  .ps-titleblock {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ps-titleblock .tb-cell:nth-child(2n) {
+    border-right: 0;
+  }
+  .ps-titleblock .tb-cell {
+    border-top: 1px solid var(--line);
+    margin-top: -1px;
+  }
 }
