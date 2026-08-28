@@ -2,22 +2,19 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { mediaUrls } from "../sanity/lib/media";
 
 // Featured projects as ballooned items on the sheet, like the parts of an
 // assembly drawing. Hovering (or focusing) a card fades the project's video
-// in over it; projects without video fall back to their main image. On touch
-// devices the overlay engages while the card sits in the middle band of the
-// viewport, so previews switch on and off as you scroll.
+// in over it; projects without video fall back to their main image. Touch
+// devices get no preview — tapping the card opens the project page.
 
 const humanize = (s: string) =>
   s.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
 function ItemCard({ project, index }: { project: any; index: number }) {
-  const cardRef = useRef<HTMLAnchorElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [active, setActive] = useState(false);
   const { imageUrl, videoUrl } = mediaUrls(project);
 
   const play = () => {
@@ -27,31 +24,10 @@ function ItemCard({ project, index }: { project: any; index: number }) {
     videoRef.current?.pause();
   };
 
-  // Without hover, the card counts as "active" while it overlaps the middle
-  // band of the viewport (the rootMargin trims 40% off the top and bottom).
-  useEffect(() => {
-    const card = cardRef.current;
-    if (!card || window.matchMedia("(hover: hover)").matches) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setActive(entry.isIntersecting),
-      { rootMargin: "-40% 0px -40% 0px" }
-    );
-    observer.observe(card);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (active) video.play().catch(() => {});
-    else video.pause();
-  }, [active]);
-
   return (
     <Link
-      ref={cardRef}
       href={`/projects/${project.slug.current}`}
-      className={`ps-card${active ? " is-active" : ""}`}
+      className="ps-card"
       onMouseEnter={play}
       onMouseLeave={pause}
       onFocus={play}

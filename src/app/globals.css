@@ -166,8 +166,7 @@ button:focus-visible {
   flex-direction: column;
   gap: 0.45rem;
 }
-.ps-card:hover,
-.ps-card.is-active {
+.ps-card:hover {
   border-color: var(--ink);
 }
 /* registration ticks on two corners */
@@ -195,9 +194,7 @@ button:focus-visible {
   border-right-width: 1px;
 }
 .ps-card:hover::before,
-.ps-card:hover::after,
-.ps-card.is-active::before,
-.ps-card.is-active::after {
+.ps-card:hover::after {
   border-color: var(--copper);
 }
 
@@ -261,8 +258,7 @@ button:focus-visible {
   pointer-events: none;
 }
 .ps-card:hover .ps-preview,
-.ps-card:focus-visible .ps-preview,
-.ps-card.is-active .ps-preview {
+.ps-card:focus-visible .ps-preview {
   opacity: 1;
 }
 .ps-preview video {
