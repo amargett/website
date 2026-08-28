@@ -8,16 +8,7 @@ export const dynamic = "force-dynamic";
 const aboutQuery = `*[_type == "about"][0]{
   title,
   photo,
-  introduction,
-  email,
-  linkedin,
-  resume{
-    asset->{
-      url
-    }
-  },
-  github,
-  website
+  introduction
 }`;
 
 export default async function AboutPage() {
@@ -38,10 +29,6 @@ export default async function AboutPage() {
       </main>
     );
   }
-
-  const githubLabel = aboutData.github
-    ?.replace(/^https?:\/\//, "")
-    .replace(/\/$/, "");
 
   return (
     <main>
@@ -75,57 +62,6 @@ export default async function AboutPage() {
           )}
           <div className="ps-prose max-w-[42rem]">
             <PortableText value={aboutData.introduction} />
-          </div>
-
-          <div className="mt-9 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-[36rem]">
-            <div className="border border-[var(--line)] bg-[var(--paper)] px-4 py-2.5">
-              <span className="tb-key">Email</span>
-              <span className="tb-val">
-                <a href={`mailto:${aboutData.email}`}>{aboutData.email}</a>
-              </span>
-            </div>
-            {aboutData.linkedin && (
-              <div className="border border-[var(--line)] bg-[var(--paper)] px-4 py-2.5">
-                <span className="tb-key">LinkedIn</span>
-                <span className="tb-val">
-                  <a
-                    href={aboutData.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View profile
-                  </a>
-                </span>
-              </div>
-            )}
-            {aboutData.github && (
-              <div className="border border-[var(--line)] bg-[var(--paper)] px-4 py-2.5">
-                <span className="tb-key">GitHub</span>
-                <span className="tb-val">
-                  <a
-                    href={aboutData.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {githubLabel}
-                  </a>
-                </span>
-              </div>
-            )}
-            {aboutData.resume?.asset?.url && (
-              <div className="border border-[var(--line)] bg-[var(--paper)] px-4 py-2.5">
-                <span className="tb-key">Resume</span>
-                <span className="tb-val">
-                  <a
-                    href={aboutData.resume.asset.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    resume.pdf
-                  </a>
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </div>

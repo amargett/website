@@ -166,7 +166,8 @@ button:focus-visible {
   flex-direction: column;
   gap: 0.45rem;
 }
-.ps-card:hover {
+.ps-card:hover,
+.ps-card.is-active {
   border-color: var(--ink);
 }
 /* registration ticks on two corners */
@@ -194,7 +195,9 @@ button:focus-visible {
   border-right-width: 1px;
 }
 .ps-card:hover::before,
-.ps-card:hover::after {
+.ps-card:hover::after,
+.ps-card.is-active::before,
+.ps-card.is-active::after {
   border-color: var(--copper);
 }
 
@@ -258,7 +261,8 @@ button:focus-visible {
   pointer-events: none;
 }
 .ps-card:hover .ps-preview,
-.ps-card:focus-visible .ps-preview {
+.ps-card:focus-visible .ps-preview,
+.ps-card.is-active .ps-preview {
   opacity: 1;
 }
 .ps-preview video {
@@ -271,6 +275,7 @@ button:focus-visible {
     transition: none;
   }
 }
+
 
 .ps-index-link {
   font-family: var(--mono);
@@ -353,7 +358,7 @@ button:focus-visible {
 .ps-titleblock {
   border-top: 1px solid var(--ink);
   display: grid;
-  grid-template-columns: 1.4fr 0.9fr 1.4fr 1.4fr 1fr;
+  grid-template-columns: 1.4fr 1.2fr 1.4fr 1.4fr 1fr;
   font-family: var(--mono);
   background: var(--paper);
 }
@@ -463,11 +468,21 @@ button:focus-visible {
   .ps-nav-crumbs {
     gap: 1.1rem;
   }
-  .ps-header {
-    grid-template-columns: 1fr;
+  .ps-nav-note {
+    display: none;
   }
-  .ps-header figure {
-    justify-self: start;
+  /* name and sapling side by side; the summary paragraph is dropped */
+  .ps-header {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .ps-role {
+    display: none;
+  }
+  .ps-header figure svg {
+    width: 88px;
+    height: auto;
   }
   .ps-row {
     flex-direction: column;
@@ -477,10 +492,16 @@ button:focus-visible {
     width: 100%;
     height: 10rem;
   }
+  /* drop the author cell; the remaining four form a 2×2 grid whose right
+     column holds children 3 (email) and 5 (resume) */
   .ps-titleblock {
     grid-template-columns: 1fr 1fr;
   }
-  .ps-titleblock .tb-cell:nth-child(2n) {
+  .ps-titleblock .tb-author {
+    display: none;
+  }
+  .ps-titleblock .tb-cell:nth-child(3),
+  .ps-titleblock .tb-cell:nth-child(5) {
     border-right: 0;
   }
   .ps-titleblock .tb-cell {
